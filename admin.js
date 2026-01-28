@@ -129,11 +129,20 @@ function fileToDataURL(file) {
 async function checkAdmin(user) {
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
-    const data = snap.exists() ? snap.data() : null;
-    return !!(data && data.role === "admin" && data.active === true);
+    if (!snap.exists()) return { ok: false };
+
+    const data = snap.data();
+
+    if (data.active !== true) return { ok: false };
+
+    if (data.role === "admin" || data.role === "superadmin") {
+      return { ok: true, role: data.role };
+    }
+
+    return { ok: false };
   } catch (e) {
     console.error("checkAdmin error:", e);
-    return false;
+    return { ok: false };
   }
 }
 
@@ -588,14 +597,17 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  const ok = await checkAdmin(user);
-  ADMIN_OK = ok;
+  const res = await checkAdmin(user);
+  ADMIN_OK = res.ok;
 
-  if (!ok) {
+  if (!res.ok) {
     if (loginMsg) loginMsg.textContent = "❌ الحساب ده مش أدمن";
     await signOut(auth);
     return;
   }
+
+  // تقدر تستخدمها بعدين
+  window.CURRENT_ROLE = res.role; // admin | superadmin
 
   if (loginBox) loginBox.style.display = "none";
   if (dataBox) dataBox.style.display = "block";
