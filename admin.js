@@ -65,6 +65,7 @@ let unsubVols = null;
 let unsubReqs = null;
 
 let ADMIN_OK = false;
+let CURRENT_ROLE = null; // "admin" | "super_admin"
 
 /** ========== Helpers ========== */
 const norm = (v) =>
@@ -125,21 +126,23 @@ function fileToDataURL(file) {
   });
 }
 
-/** ✅ تحقق Role الأدمن من users/{uid} */
+/** ✅ تحقق Role من users/{uid} (admin + super_admin) */
 async function checkAdmin(user) {
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists()) return false;
+    if (!snap.exists()) return { ok: false, role: null };
 
-    const data = snap.data();
+    const data = snap.data() || {};
+    const role = String(data.role || "").trim(); // "admin" | "super_admin"
+    const active = data.active === true;
 
-    // يقبل admin و super_admin
     const allowedRoles = ["admin", "super_admin"];
+    const ok = active && allowedRoles.includes(role);
 
-    return data.active === true && allowedRoles.includes(data.role);
+    return { ok, role: ok ? role : null };
   } catch (e) {
     console.error("checkAdmin error:", e);
-    return false;
+    return { ok: false, role: null };
   }
 }
 
@@ -293,9 +296,7 @@ mAddBtn?.addEventListener("click", async () => {
   try {
     let photoData = "";
     const f = mPhoto?.files?.[0];
-    if (f) {
-      photoData = await fileToDataURL(f);
-    }
+    if (f) photoData = await fileToDataURL(f);
 
     const volunteerId = await generateVolunteerId();
 
@@ -572,6 +573,7 @@ logoutBtn?.addEventListener("click", async () => {
 /** حالة الدخول */
 onAuthStateChanged(auth, async (user) => {
   ADMIN_OK = false;
+  CURRENT_ROLE = null;
 
   if (!user) {
     if (loginBox) loginBox.style.display = "block";
@@ -596,6 +598,7 @@ onAuthStateChanged(auth, async (user) => {
 
   const res = await checkAdmin(user);
   ADMIN_OK = res.ok;
+  CURRENT_ROLE = res.role;
 
   if (!res.ok) {
     if (loginMsg) loginMsg.textContent = "❌ الحساب ده مش أدمن";
@@ -603,8 +606,8 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // تقدر تستخدمها بعدين
-  window.CURRENT_ROLE = res.role; // admin | superadmin
+  // للتجربة/المراجعة
+  window.CURRENT_ROLE = CURRENT_ROLE;
 
   if (loginBox) loginBox.style.display = "none";
   if (dataBox) dataBox.style.display = "block";
