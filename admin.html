@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>لوحة التحكم | بيكسولوجي</title>
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#0b1620" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>لوحة التحكم (Pixology)</h1>
+      <div class="actions">
+        <input id="search" placeholder="بحث بالاسم أو ID..." />
+
+        <select id="filterStage">
+          <option value="">كل الحالات</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Certified">Certified</option>
+        </select>
+
+        <button id="exportCsv">تصدير CSV</button>
+        <button id="logout">تسجيل خروج</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- Login -->
+      <section class="card" id="loginBox">
+        <h2>تسجيل دخول الأدمن</h2>
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Password" />
+        <button id="login">دخول</button>
+        <p id="loginMsg" class="msg"></p>
+      </section>
+
+      <!-- Data -->
+      <section class="card" id="dataBox" style="display: none">
+        <!-- ✅ طلبات التطوع -->
+        <h2>طلبات التطوع (Pending)</h2>
+        <div class="hint">
+          * اضغط موافقة لإصدار ID رسمي ونقل الطلب لقائمة المتطوعين
+        </div>
+
+        <div class="tableWrap" style="margin-bottom: 18px">
+          <table>
+            <thead>
+              <tr>
+                <th>وقت</th>
+                <th>اسم</th>
+                <th>رقم الهاتف</th>
+                <th>الجنس</th>
+                <th>تاريخ الانضمام</th>
+                <th>الدولة</th>
+                <th>ملاحظات</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="reqRows"></tbody>
+          </table>
+        </div>
+
+        <!-- ✅ إضافة متطوع يدويًا (Step 2) -->
+        <h2 style="margin-top: 22px">إضافة متطوع يدويًا</h2>
+        <div class="hint">* للأدمن فقط — هيطلع Volunteer ID تلقائي</div>
+
+        <div class="card" style="margin: 10px 0 14px; padding: 14px">
+          <div style="display: grid; gap: 10px; grid-template-columns: 1fr 1fr">
+            <input id="mName" placeholder="اسم المتطوع" />
+            <input id="mPhone" placeholder="رقم الهاتف" />
+
+            <select id="mGender">
+              <option value="">الجنس</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+
+            <input
+              id="mJoinedAt"
+              placeholder="تاريخ الانضمام (مثال: 2026-01-28)"
+            />
+
+            <input id="mCountry" placeholder="الدولة" />
+            <input id="mNotes" placeholder="ملاحظات" />
+          </div>
+
+          <div
+            style="
+              margin-top: 10px;
+              display: flex;
+              gap: 10px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <input id="mPhoto" type="file" accept="image/*" />
+            <button id="mAddBtn" class="btn btn--solid" type="button">
+              ➕ إضافة
+            </button>
+            <small class="muted" id="mMsg"></small>
+          </div>
+
+          <div class="hint" style="margin-top: 8px">
+            * لو الصورة كبيرة قوي الأفضل ما ترفعهاش دلوقتي (عشان حجم Firestore)
+          </div>
+        </div>
+
+        <!-- ✅ المتطوعين المعتمدين -->
+        <h2>المتطوعين (Approved)</h2>
+        <div class="hint">* البيانات تظهر للأدمن فقط</div>
+
+        <div class="actions" style="margin: 10px 0 14px; gap: 10px">
+          <button id="deleteSelected" class="btn btn--outline" type="button">
+            🗑️ مسح المحدد
+          </button>
+          <button id="clearSelection" class="btn btn--outline" type="button">
+            ✖️ إلغاء التحديد
+          </button>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>وقت</th>
+                <th>صورة</th>
+                <th>اسم المتطوع</th>
+                <th>Volunteer ID</th>
+                <th>رقم المتطوع</th>
+                <th>الجنس</th>
+                <th>تاريخ الانضمام</th>
+                <th>الساعات</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="admin.js"></script>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </body>
+</html>

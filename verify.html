@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>التحقق من المتطوع | Pixology</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+      :root {
+        --bg: #f3f6fb;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e5e7eb;
+        --shadow: 0 14px 35px rgba(0, 0, 0, 0.1);
+        --ok: #16a34a;
+        --bad: #dc2626;
+        --radius: 16px;
+      }
+
+      body {
+        font-family: system-ui, Tahoma, Arial;
+        background: var(--bg);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+      }
+
+      .card {
+        background: var(--card);
+        padding: 20px;
+        border-radius: var(--radius);
+        width: min(520px, 100%);
+        box-shadow: var(--shadow);
+        text-align: center;
+        border: 1px solid var(--border);
+      }
+
+      .head {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 900;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.03);
+      }
+      .badge.ok {
+        color: var(--ok);
+        background: rgba(22, 163, 74, 0.08);
+        border-color: rgba(22, 163, 74, 0.25);
+      }
+      .badge.bad {
+        color: var(--bad);
+        background: rgba(220, 38, 38, 0.08);
+        border-color: rgba(220, 38, 38, 0.25);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .line {
+        height: 1px;
+        background: var(--border);
+        margin: 14px 0;
+      }
+
+      .avatar {
+        width: 86px;
+        height: 86px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        background: rgba(25, 168, 230, 0.08);
+        display: grid;
+        place-items: center;
+        font-weight: 1100;
+      }
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        gap: 10px;
+        text-align: right;
+        margin-top: 12px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.02);
+      }
+      .k {
+        color: var(--muted);
+        font-weight: 900;
+      }
+      .v {
+        font-weight: 1000;
+        word-break: break-word;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-weight: 900;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--text);
+      }
+      .btn.primary {
+        background: rgba(25, 168, 230, 0.12);
+        border-color: rgba(25, 168, 230, 0.25);
+      }
+
+      .hint {
+        margin-top: 14px;
+        font-size: 13px;
+      }
+      code {
+        background: rgba(15, 23, 42, 0.06);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-weight: 900;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="head">
+        <h2 style="margin: 0">التحقق من المتطوع</h2>
+
+        <div id="badge" class="badge">
+          <span>⏳</span>
+          <span class="muted">جاري التحقق...</span>
+        </div>
+
+        <div class="line"></div>
+
+        <div id="avatar" class="avatar" style="display: none">
+          <span id="avatarLetter">V</span>
+        </div>
+      </div>
+
+      <div id="data" style="display: none">
+        <div class="grid">
+          <div class="row">
+            <div class="k">الاسم</div>
+            <div class="v" id="name">—</div>
+          </div>
+
+          <div class="row">
+            <div class="k">رقم المتطوع</div>
+            <div class="v" id="vid">—</div>
+          </div>
+
+          <div class="row">
+            <div class="k">الساعات</div>
+            <div class="v"><span id="hours">0</span> ساعة</div>
+          </div>
+
+          <div class="row">
+            <div class="k">الحالة</div>
+            <div class="v" id="state">—</div>
+          </div>
+
+          <div class="row" id="orgRow" style="display: none">
+            <div class="k">الجهة</div>
+            <div class="v" id="org">—</div>
+          </div>
+
+          <div class="row" id="approvedRow" style="display: none">
+            <div class="k">تاريخ الاعتماد</div>
+            <div class="v" id="approvedAt">—</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a id="openVolunteer" class="btn primary" href="#"
+            >فتح صفحة المتطوع</a
+          >
+          <a class="btn" href="index.html">رجوع</a>
+        </div>
+      </div>
+
+      <div id="errorActions" class="actions" style="display: none">
+        <a class="btn" href="index.html">رجوع</a>
+      </div>
+
+      <p class="muted hint">
+        لو معاك QR، تأكد إن الرابط فيه
+        <code>?id=VOL-000001</code>
+      </p>
+    </div>
+
+    <script type="module">
+      import { db } from "./firebase.js";
+      import {
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+      const params = new URLSearchParams(location.search);
+      const id = (params.get("id") || "").trim();
+
+      const badgeEl = document.getElementById("badge");
+      const dataEl = document.getElementById("data");
+      const errorActions = document.getElementById("errorActions");
+
+      const avatarWrap = document.getElementById("avatar");
+      const avatarLetter = document.getElementById("avatarLetter");
+
+      function setBadge(type, text, icon) {
+        badgeEl.classList.remove("ok", "bad");
+        if (type) badgeEl.classList.add(type);
+        badgeEl.innerHTML = `<span>${icon}</span><span>${text}</span>`;
+      }
+
+      // ✅ baseDir للرابط المطلق
+      const baseDir = window.location.href.substring(
+        0,
+        window.location.href.lastIndexOf("/") + 1,
+      );
+
+      if (!id) {
+        setBadge("bad", "رقم متطوع غير صالح (مفيش id في الرابط)", "❌");
+        errorActions.style.display = "flex";
+      } else {
+        // ✅ بدل where/getDocs: نجيب document مباشرة (Document ID = VOL-000001)
+        const snap = await getDoc(doc(db, "pixology_volunteers", id));
+
+        if (!snap.exists()) {
+          setBadge("bad", "متطوع غير موجود / غير معتمد", "❌");
+          errorActions.style.display = "flex";
+        } else {
+          const d = snap.data();
+
+          const status = (d.status || "Active").trim();
+          const isInactive = status.toLowerCase() === "inactive";
+
+          if (isInactive) {
+            setBadge("bad", "⚠ متطوع موجود لكن غير نشط", "⚠️");
+          } else {
+            setBadge("ok", "متطوع معتمد من Pixology", "✅");
+          }
+
+          document.getElementById("name").textContent = d.name || "—";
+          document.getElementById("vid").textContent = d.volunteerId || id;
+          document.getElementById("hours").textContent = String(d.hours ?? 0);
+          document.getElementById("state").textContent = status || "Active";
+
+          const org = (d.organization || "").trim();
+          if (org) {
+            document.getElementById("org").textContent = org;
+            document.getElementById("orgRow").style.display = "grid";
+          }
+
+          const t = d.createdAt?.toDate ? d.createdAt.toDate() : null;
+          if (t) {
+            document.getElementById("approvedAt").textContent =
+              t.toLocaleString("ar-EG");
+            document.getElementById("approvedRow").style.display = "grid";
+          }
+
+          const photo = d.photoData || d.photoUrl || "";
+          avatarWrap.style.display = "grid";
+          if (photo) {
+            avatarWrap.innerHTML = `<img src="${photo}" alt="photo" />`;
+          } else {
+            const nm = (d.name || "V").trim();
+            avatarLetter.textContent = nm[0] || "V";
+          }
+
+          const volunteerUrl = `${baseDir}volunteer.html?id=${encodeURIComponent(id)}`;
+          document.getElementById("openVolunteer").href = volunteerUrl;
+
+          dataEl.style.display = "block";
+        }
+      }
+    </script>
+  </body>
+</html>

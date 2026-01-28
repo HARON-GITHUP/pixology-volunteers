@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مؤسسة بيكسولوجي</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta name="theme-color" content="#0b1620" />
+  </head>
+
+  <body>
+    <!-- TOP NAV -->
+    <header class="topnav">
+      <div class="container topnav__wrap">
+        <a class="brand" href="index.html">
+          <img
+            src="p.jpg"
+            alt="Pixology"
+            style="width: 180px; height: 80px"
+          />
+        </a>
+
+        <div class="topnav__right">
+          <div class="topnav__actions">
+            <a class="link" href="admin.html">لوحة التحكم</a>
+            <a class="btn btn--solid" href="register.html">تقديم طلب تطوع</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__bg"></div>
+      <div class="hero__pattern" aria-hidden="true"></div>
+
+      <div class="course-card__img hero-img">
+        <div class="hero-text">
+          <span class="badge-count">
+            الطلبات <b id="reqCount">—</b>
+          </span>
+          <span class="badge-type">
+            المتطوعين <b id="volCount">—</b>
+          </span>
+
+          <h2>Pixology Foundation</h2>
+          <p>مؤسسة بيكسولوجي للسلام والتنمية</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION TITLE -->
+    <section class="section-title">
+      <div class="container section-title__wrap">
+        <h2 class="section-title__h">
+          المتطوعين <span>المعتمدين</span>
+        </h2>
+        <div class="section-title__lines" aria-hidden="true">
+          <span></span><span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTER TOOLS -->
+    <section class="tools container">
+      <div class="tools__row">
+        <input
+          id="courseSearch"
+          class="tools__input"
+          type="text"
+          placeholder="ابحث عن متطوع..."
+        />
+
+        <select id="filterGender" class="tools__select">
+          <option value="">الجنس</option>
+          <option value="ذكر">ذكر</option>
+          <option value="انثى">انثى</option>
+        </select>
+
+        <select id="filterGrade" class="tools__select">
+          <option value="">الترتيب</option>
+          <option value="اكبر عدد ساعات">أكبر عدد ساعات</option>
+          <option value="اقل عدد ساعات">أقل عدد ساعات</option>
+        </select>
+
+        <button id="clearFilters" class="btn btn--outline" type="button">
+          مسح
+        </button>
+      </div>
+
+      <div class="tools__meta">
+        <span id="resultCount">0</span> متطوع
+      </div>
+    </section>
+
+    <!-- VOLUNTEERS GRID (Dynamic) -->
+    <main class="container">
+      <section
+        class="grid"
+        id="volGrid"
+        aria-label="قائمة المتطوعين المعتمدين"
+      ></section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container footer__wrap">
+        <div class="footer__center">
+          <img src="${img}" alt="..." loading="lazy" decoding="async" onerror="this.src='p.jpg'"/>
+
+
+          <p class="footer__note">
+            تم إنشاء هذه المنصة لتوثيق المتطوعين وإبراز إنجازاتهم بشكل رسمي.
+          </p>
+
+          <a href="mailto:info@pixologyfoundation.org">
+            info@pixologyfoundation.org
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JS -->
+    <!-- لو app.js بيعمل حركات/ثيم سيبه -->
+    <script src="app.js"></script>
+
+    <!-- ده الملف اللي هيجيب المتطوعين من Firebase -->
+    <script type="module" src="index.js"></script>
+
+    <!-- ❌ معطّل لأن مفيش sw.js -->
+    <!--
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+    </script>
+    -->
+  </body>
+</html>
+        <div>
+          <button
+            class="modal__close"
+            id="cmClose"
+            aria-label="إغلاق النافذة"
