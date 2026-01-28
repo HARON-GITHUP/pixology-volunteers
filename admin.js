@@ -129,20 +129,17 @@ function fileToDataURL(file) {
 async function checkAdmin(user) {
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists()) return { ok: false };
+    if (!snap.exists()) return false;
 
     const data = snap.data();
 
-    if (data.active !== true) return { ok: false };
+    // يقبل admin و super_admin
+    const allowedRoles = ["admin", "super_admin"];
 
-    if (data.role === "admin" || data.role === "superadmin") {
-      return { ok: true, role: data.role };
-    }
-
-    return { ok: false };
+    return data.active === true && allowedRoles.includes(data.role);
   } catch (e) {
     console.error("checkAdmin error:", e);
-    return { ok: false };
+    return false;
   }
 }
 
