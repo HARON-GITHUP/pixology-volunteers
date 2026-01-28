@@ -12,6 +12,8 @@ import {
   runTransaction,
   deleteDoc,
   setDoc,
+  where,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 import {
@@ -19,105 +21,6 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-// تحميل قائمة الأدمنز (Super Admin فقط)
-aLoad?.addEventListener("click", async () => {
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  setAdminMsg("جارٍ التحميل...");
-
-  try {
-    // هنجيب كل users اللي role = admin أو super_admin
-    // (ملاحظة: يحتاج index لو كبر، لكن الآن تمام)
-    const q1 = query(collection(db, "users"), where("role", "==", "admin"));
-    const q2 = query(
-      collection(db, "users"),
-      where("role", "==", "super_admin"),
-    );
-
-    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-
-    const list = [
-      ...s1.docs.map((d) => ({ uid: d.id, ...d.data() })),
-      ...s2.docs.map((d) => ({ uid: d.id, ...d.data() })),
-    ].map((x) => ({
-      uid: x.uid,
-      role: x.role || "admin",
-      active: x.active === true,
-    }));
-
-    // إزالة التكرار لو UID موجود مرتين (احتياط)
-    const map = new Map();
-    list.forEach((x) => map.set(x.uid, x));
-    renderAdminUsers(Array.from(map.values()));
-
-    setAdminMsg(`✅ تم التحميل (${map.size})`);
-  } catch (e) {
-    console.error(e);
-    setAdminMsg("❌ فشل التحميل");
-  }
-});
-
-// حفظ/تحديث أدمن
-aSave?.addEventListener("click", async () => {
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  const uid = (aUid?.value || "").trim();
-  const role = (aRole?.value || "admin").trim();
-  const active = (aActive?.value || "true") === "true";
-
-  if (!uid) {
-    setAdminMsg("❌ اكتب UID");
-    return;
-  }
-
-  setAdminMsg("جارٍ الحفظ...");
-
-  try {
-    await setDoc(doc(db, "users", uid), { role, active }, { merge: true });
-    setAdminMsg("✅ تم الحفظ");
-    aLoad?.click(); // تحديث القائمة
-  } catch (e) {
-    console.error(e);
-    setAdminMsg("❌ فشل الحفظ (تأكد إنك سوبر أدمن وأن الـ Rules صح)");
-  }
-});
-
-// أزرار داخل الجدول
-aRows?.addEventListener("click", async (e) => {
-  const btn = e.target?.closest?.("button[data-act]");
-  if (!btn) return;
-
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  const act = btn.dataset.act;
-  const uid = btn.dataset.uid;
-  if (!uid) return;
-
-  if (act === "fill") {
-    if (aUid) aUid.value = uid;
-    if (aRole) aRole.value = btn.dataset.role || "admin";
-    if (aActive)
-      aActive.value = btn.dataset.active === "true" ? "true" : "false";
-    setAdminMsg("✅ تم تحميل بيانات المستخدم في الفورم");
-    return;
-  }
-
-  if (act === "toggle") {
-    const current = btn.dataset.active === "true";
-    const next = !current;
-
-    setAdminMsg("جارٍ التحديث...");
-
-    try {
-      await updateDoc(doc(db, "users", uid), { active: next });
-      setAdminMsg("✅ تم التحديث");
-      aLoad?.click();
-    } catch (e2) {
-      console.error(e2);
-      setAdminMsg("❌ فشل التحديث");
-    }
-  }
-});
 
 /** ========== Collections ========== */
 const REQ_COL = "volunteer_requests";
@@ -146,6 +49,7 @@ const toastEl = document.getElementById("toast");
 const selectAll = document.getElementById("selectAll");
 const deleteSelectedBtn = document.getElementById("deleteSelected");
 const clearSelectionBtn = document.getElementById("clearSelection");
+
 // ===== Super Admin Manager DOM =====
 const adminManager = document.getElementById("adminManager");
 const aUid = document.getElementById("aUid");
@@ -233,6 +137,7 @@ function fileToDataURL(file) {
     r.readAsDataURL(file);
   });
 }
+
 function setAdminMsg(text = "") {
   if (!aMsg) return;
   aMsg.textContent = text;
@@ -312,8 +217,7 @@ function renderVolunteersTable() {
         <td colspan="12" style="text-align:center; padding:18px; color:#6b7280; font-weight:700;">
           لا توجد بيانات حتى الآن
         </td>
-      </tr>
-    `;
+      </tr>`;
     return;
   }
 
@@ -321,10 +225,7 @@ function renderVolunteersTable() {
     .map(
       (d) => `
       <tr data-docid="${d._docId}">
-        <td>
-          <input class="rowCheck" type="checkbox" data-id="${d._docId}" />
-        </td>
-
+        <td><input class="rowCheck" type="checkbox" data-id="${d._docId}" /></td>
         <td>${d.createdAtText || ""}</td>
 
         <td>
@@ -343,39 +244,30 @@ function renderVolunteersTable() {
         <td>${d.gender || ""}</td>
         <td>${d.joinedAt || ""}</td>
 
-        <td>
-          <input class="mini" type="number" min="0" value="${
-            d.hours ?? 0
-          }" data-field="hours" />
-        </td>
+        <td><input class="mini" type="number" min="0" value="${
+          d.hours ?? 0
+        }" data-field="hours" /></td>
 
         <td>
           <select class="mini" data-field="status">
-            <option value="Active" ${
-              d.status === "Active" ? "selected" : ""
-            }>Active</option>
-            <option value="Inactive" ${
-              d.status === "Inactive" ? "selected" : ""
-            }>Inactive</option>
-            <option value="Certified" ${
-              d.status === "Certified" ? "selected" : ""
-            }>Certified</option>
+            <option value="Active" ${d.status === "Active" ? "selected" : ""}>Active</option>
+            <option value="Inactive" ${d.status === "Inactive" ? "selected" : ""}>Inactive</option>
+            <option value="Certified" ${d.status === "Certified" ? "selected" : ""}>Certified</option>
           </select>
         </td>
 
-        <td>
-          <input class="mini" type="text" value="${safeAttr(
-            d.notes || "",
-          )}" data-field="notes" />
-        </td>
+        <td><input class="mini" type="text" value="${safeAttr(
+          d.notes || "",
+        )}" data-field="notes" /></td>
 
         <td style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="miniBtn" data-action="save">حفظ</button>
+          <button class="miniBtn" data-action="issueCert">إصدار شهادة</button>
           <a class="miniBtn" style="text-decoration:none; display:inline-block;"
              href="certificate.html?id=${encodeURIComponent(
                d.volunteerId || d._docId,
              )}"
-             target="_blank">شهادة</a>
+             target="_blank">عرض</a>
         </td>
       </tr>
     `,
@@ -414,9 +306,9 @@ async function generateVolunteerId() {
     tx.set(counterRef, { value: next }, { merge: true });
     return next;
   });
-
   return `VOL-${String(nextNumber).padStart(6, "0")}`;
 }
+
 async function generateCertificateId() {
   const counterRef = doc(db, COUNTERS_COL, "certificates");
   const nextNumber = await runTransaction(db, async (tx) => {
@@ -426,11 +318,10 @@ async function generateCertificateId() {
     tx.set(counterRef, { value: next }, { merge: true });
     return next;
   });
-
   return `CERT-${String(nextNumber).padStart(6, "0")}`;
 }
 
-/** ✅ إضافة متطوع يدويًا (Step 2) */
+/** ✅ إضافة متطوع يدويًا */
 mAddBtn?.addEventListener("click", async () => {
   if (!ADMIN_OK) return alert("❌ غير مسموح");
 
@@ -500,8 +391,7 @@ function renderRequests(reqDocs) {
         <td colspan="8" style="text-align:center; padding:18px; color:#6b7280; font-weight:700;">
           لا توجد طلبات Pending
         </td>
-      </tr>
-    `;
+      </tr>`;
     return;
   }
 
@@ -531,17 +421,143 @@ function renderRequests(reqDocs) {
     .join("");
 }
 
-/** موافقة/رفض الطلب */
+/** ✅ جدول الأدمنز - تحميل */
+aLoad?.addEventListener("click", async () => {
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  setAdminMsg("جارٍ التحميل...");
+
+  try {
+    const q1 = query(collection(db, "users"), where("role", "==", "admin"));
+    const q2 = query(
+      collection(db, "users"),
+      where("role", "==", "super_admin"),
+    );
+
+    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+    const list = [
+      ...s1.docs.map((d) => ({ uid: d.id, ...d.data() })),
+      ...s2.docs.map((d) => ({ uid: d.id, ...d.data() })),
+    ].map((x) => ({
+      uid: x.uid,
+      role: x.role || "admin",
+      active: x.active === true,
+    }));
+
+    const map = new Map();
+    list.forEach((x) => map.set(x.uid, x));
+    renderAdminUsers(Array.from(map.values()));
+
+    setAdminMsg(`✅ تم التحميل (${map.size})`);
+  } catch (e) {
+    console.error(e);
+    setAdminMsg("❌ فشل التحميل");
+  }
+});
+
+/** ✅ حفظ/تحديث أدمن */
+aSave?.addEventListener("click", async () => {
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  const uid = (aUid?.value || "").trim();
+  const role = (aRole?.value || "admin").trim();
+  const active = (aActive?.value || "true") === "true";
+
+  if (!uid) {
+    setAdminMsg("❌ اكتب UID");
+    return;
+  }
+
+  setAdminMsg("جارٍ الحفظ...");
+
+  try {
+    await setDoc(doc(db, "users", uid), { role, active }, { merge: true });
+    setAdminMsg("✅ تم الحفظ");
+    aLoad?.click();
+  } catch (e) {
+    console.error(e);
+    setAdminMsg("❌ فشل الحفظ (تأكد إنك سوبر أدمن وأن الـ Rules صح)");
+  }
+});
+
+/** ✅ أزرار داخل جدول الأدمنز */
+aRows?.addEventListener("click", async (e) => {
+  const btn = e.target?.closest?.("button[data-act]");
+  if (!btn) return;
+
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  const act = btn.dataset.act;
+  const uid = btn.dataset.uid;
+  if (!uid) return;
+
+  if (act === "fill") {
+    if (aUid) aUid.value = uid;
+    if (aRole) aRole.value = btn.dataset.role || "admin";
+    if (aActive)
+      aActive.value = btn.dataset.active === "true" ? "true" : "false";
+    setAdminMsg("✅ تم تحميل بيانات المستخدم في الفورم");
+    return;
+  }
+
+  if (act === "toggle") {
+    const current = btn.dataset.active === "true";
+    const next = !current;
+
+    setAdminMsg("جارٍ التحديث...");
+
+    try {
+      await updateDoc(doc(db, "users", uid), { active: next });
+      setAdminMsg("✅ تم التحديث");
+      aLoad?.click();
+    } catch (e2) {
+      console.error(e2);
+      setAdminMsg("❌ فشل التحديث");
+    }
+  }
+});
+
+/** ✅ أزرار الجدول (save / issueCert / approve / reject) — Listener واحد فقط */
 rowsEl?.addEventListener("click", async (e) => {
   const btn = e.target?.closest?.("button[data-action]");
   if (!btn) return;
 
   const action = btn.dataset.action;
+
+  // ===== Requests (approve/reject) =====
+  if (action === "approve" || action === "reject") {
+    if (!ADMIN_OK) return alert("❌ غير مسموح");
+
+    const row = btn.closest("tr");
+    const reqId = row?.dataset?.reqid;
+    if (!reqId) return;
+
+    btn.disabled = true;
+
+    try {
+      if (action === "approve") {
+        // هنا لو عندك منطق موافقة الطلب (نقل الطلب لمتطوعين) ضيفه حسب مشروعك
+        await updateDoc(doc(db, REQ_COL, reqId), { status: "Approved" });
+        showToast("✅ تم قبول الطلب");
+      } else {
+        await updateDoc(doc(db, REQ_COL, reqId), { status: "Rejected" });
+        showToast("✅ تم رفض الطلب");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ حصل خطأ");
+    } finally {
+      btn.disabled = false;
+    }
+    return;
+  }
+
+  // ===== Volunteers Table (save/issueCert) =====
   const row = btn.closest("tr");
   const docId = row?.dataset?.docid;
   if (!docId) return;
 
-  // ===== حفظ تعديل =====
   if (action === "save") {
     const hoursInput = row.querySelector("input[data-field='hours']");
     const statusSelect = row.querySelector("select[data-field='status']");
@@ -552,6 +568,7 @@ rowsEl?.addEventListener("click", async (e) => {
     const newNotes = (notesInput?.value || "").trim();
 
     btn.disabled = true;
+    const old = btn.textContent;
     btn.textContent = "جارٍ الحفظ...";
 
     try {
@@ -563,21 +580,20 @@ rowsEl?.addEventListener("click", async (e) => {
 
       btn.textContent = "✅ تم";
       setTimeout(() => {
-        btn.textContent = "حفظ";
+        btn.textContent = old || "حفظ";
         btn.disabled = false;
       }, 700);
     } catch (err) {
       console.error(err);
       btn.textContent = "❌ فشل";
       setTimeout(() => {
-        btn.textContent = "حفظ";
+        btn.textContent = old || "حفظ";
         btn.disabled = false;
       }, 900);
     }
     return;
   }
 
-  // ===== إصدار شهادة =====
   if (action === "issueCert") {
     if (!ADMIN_OK) return alert("❌ غير مسموح");
 
@@ -586,7 +602,6 @@ rowsEl?.addEventListener("click", async (e) => {
     btn.textContent = "جارٍ الإصدار...";
 
     try {
-      // اقرأ المتطوع
       const vRef = doc(db, VOL_COL, docId);
       const vSnap = await getDoc(vRef);
       if (!vSnap.exists()) {
@@ -595,18 +610,17 @@ rowsEl?.addEventListener("click", async (e) => {
       }
 
       const v = vSnap.data();
-      const status = String(v.status || "Active").trim().toLowerCase();
+      const status = String(v.status || "Active")
+        .trim()
+        .toLowerCase();
 
-      // ممنوع إصدار شهادة لو غير نشط
       if (status === "inactive") {
         alert("❌ لا يمكن إصدار شهادة لمتطوع Inactive");
         return;
       }
 
-      // ID للشهادة
       const certId = await generateCertificateId();
 
-      // سجّل الشهادة في Firestore
       await setDoc(doc(db, "certificates", certId), {
         certId,
         volunteerDocId: docId,
@@ -622,9 +636,10 @@ rowsEl?.addEventListener("click", async (e) => {
       });
 
       showToast("✅ تم إصدار شهادة", certId);
-
-      // افتح صفحة الشهادة
-      window.open(`certificate.html?cert=${encodeURIComponent(certId)}`, "_blank");
+      window.open(
+        `certificate.html?cert=${encodeURIComponent(certId)}`,
+        "_blank",
+      );
     } catch (err) {
       console.error(err);
       alert("❌ حصل خطأ أثناء إصدار الشهادة");
@@ -632,49 +647,6 @@ rowsEl?.addEventListener("click", async (e) => {
       btn.disabled = false;
       btn.textContent = old;
     }
-  }
-});
-
-
-/** حفظ تعديل (ساعات/حالة/ملاحظات) */
-rowsEl?.addEventListener("click", async (e) => {
-  const btn = e.target?.closest?.("button[data-action='save']");
-  if (!btn) return;
-
-  const row = btn.closest("tr");
-  const docId = row?.dataset?.docid;
-  if (!docId) return;
-
-  const hoursInput = row.querySelector("input[data-field='hours']");
-  const statusSelect = row.querySelector("select[data-field='status']");
-  const notesInput = row.querySelector("input[data-field='notes']");
-
-  const newHours = Number(hoursInput?.value || 0);
-  const newStatus = (statusSelect?.value || "Active").trim();
-  const newNotes = (notesInput?.value || "").trim();
-
-  btn.disabled = true;
-  btn.textContent = "جارٍ الحفظ...";
-
-  try {
-    await updateDoc(doc(db, VOL_COL, docId), {
-      hours: Number.isFinite(newHours) ? newHours : 0,
-      status: newStatus,
-      notes: newNotes,
-    });
-
-    btn.textContent = "✅ تم";
-    setTimeout(() => {
-      btn.textContent = "حفظ";
-      btn.disabled = false;
-    }, 700);
-  } catch (err) {
-    console.error(err);
-    btn.textContent = "❌ فشل";
-    setTimeout(() => {
-      btn.textContent = "حفظ";
-      btn.disabled = false;
-    }, 900);
   }
 });
 
@@ -760,12 +732,10 @@ logoutBtn?.addEventListener("click", async () => {
 onAuthStateChanged(auth, async (user) => {
   ADMIN_OK = false;
   CURRENT_ROLE = null;
-  if (adminManager) {
-    adminManager.style.display =
-      CURRENT_ROLE === "super_admin" ? "block" : "none";
-  }
 
   if (!user) {
+    if (adminManager) adminManager.style.display = "none";
+
     if (loginBox) loginBox.style.display = "block";
     if (dataBox) dataBox.style.display = "none";
     setControlsEnabled(false);
@@ -785,27 +755,21 @@ onAuthStateChanged(auth, async (user) => {
     setMiniMsg("");
     return;
   }
-  <td style="display:flex; gap:8px; flex-wrap:wrap;">
-    <button class="miniBtn" data-action="save">
-      حفظ
-    </button>
-    <button class="miniBtn" data-action="issueCert">
-      إصدار شهادة
-    </button>
-  </td>;
 
   const res = await checkAdmin(user);
   ADMIN_OK = res.ok;
   CURRENT_ROLE = res.role;
+
+  if (adminManager) {
+    adminManager.style.display =
+      CURRENT_ROLE === "super_admin" ? "block" : "none";
+  }
 
   if (!res.ok) {
     if (loginMsg) loginMsg.textContent = "❌ الحساب ده مش أدمن";
     await signOut(auth);
     return;
   }
-
-  // للتجربة/المراجعة
-  window.CURRENT_ROLE = CURRENT_ROLE;
 
   if (loginBox) loginBox.style.display = "none";
   if (dataBox) dataBox.style.display = "block";
@@ -860,6 +824,9 @@ onAuthStateChanged(auth, async (user) => {
 
     renderVolunteersTable();
   });
+
+  // لو سوبر أدمن: حمّل القائمة تلقائيًا
+  if (CURRENT_ROLE === "super_admin") aLoad?.click();
 });
 
 setControlsEnabled(false);
