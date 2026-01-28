@@ -11,6 +11,10 @@ import {
   addDoc,
   collection,
   serverTimestamp,
+  query,
+  where,
+  getDocs,
+  limit,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const form = document.getElementById("regForm");
@@ -30,6 +34,7 @@ function setLoading(isLoading) {
 }
 
 const norm = (v) => String(v ?? "").trim();
+const digitsOnly = (s) => String(s ?? "").replace(/\D/g, "");
 
 function showErr(text) {
   if (msg) msg.textContent = text;
@@ -43,7 +48,6 @@ async function fileToSmallDataURL(file, maxSize = 360, quality = 0.7) {
     throw new Error("❌ لازم تختار صورة (JPG/PNG)");
   }
 
-  // حد حجم الملف الأصلي (اختياري) علشان ما يتعبّكش
   const maxOriginalMB = 5;
   if (file.size > maxOriginalMB * 1024 * 1024) {
     throw new Error("❌ الصورة كبيرة جدًا (أقصى 5MB)");
@@ -71,10 +75,8 @@ async function fileToSmallDataURL(file, maxSize = 360, quality = 0.7) {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, width, height);
 
-    // JPEG أصغر حجمًا غالبًا
     const dataUrl = canvas.toDataURL("image/jpeg", quality);
 
-    // حماية إضافية: لو الداتا كبيرة جدًا، قلل أكتر مرة
     if (dataUrl.length > 650_000) {
       return canvas.toDataURL("image/jpeg", 0.6);
     }
@@ -85,6 +87,23 @@ async function fileToSmallDataURL(file, maxSize = 360, quality = 0.7) {
   }
 }
 
+/** ✅ منع تكرار الطلبات عالميًا: نفس (الدولة + الرقم) */
+async function checkDuplicateByPhoneKey(phoneKey) {
+  // نفس phoneKey + status (Pending/Approved)
+  const qy = query(
+    collection(db, "volunteer_requests"),
+    where("phoneKey", "==", phoneKey),
+    where("status", "in", ["Pending", "Approved"]),
+    limit(1),
+  );
+
+  const snap = await getDocs(qy);
+  if (snap.empty) return { exists: false };
+
+  const d = snap.docs[0].data() || {};
+  return { exists: true, status: d.status || "Pending" };
+}
+
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -92,34 +111,69 @@ form?.addEventListener("submit", async (e) => {
   if (successCard) successCard.style.display = "none";
 
   const name = norm(document.getElementById("name")?.value);
-  const phone = norm(document.getElementById("phone")?.value);
+  const phoneRaw = norm(document.getElementById("phone")?.value);
   const gender = norm(document.getElementById("gender")?.value);
   const joinedAt = norm(document.getElementById("joinedAt")?.value);
-  const country = norm(document.getElementById("country")?.value);
+  const countryRaw = norm(document.getElementById("country")?.value);
   const notes = norm(document.getElementById("notes")?.value);
 
-  if (!name || !phone || !gender || !joinedAt) {
+  // ✅ تنظيف الرقم لأي دولة
+  const phoneDigits = digitsOnly(phoneRaw);
+
+  // ✅ country key (عشان اختلاف الكتابة ما يعملش duplicates)
+  const countryKey = countryRaw
+    ? countryRaw.toLowerCase().replace(/\s+/g, " ").trim()
+    : "unknown";
+
+  // ✅ مفتاح عالمي لمنع التكرار
+  const phoneKey = `${countryKey}:${phoneDigits}`;
+
+  if (!name || !phoneRaw || !gender || !joinedAt) {
     showErr("❌ املأ كل الحقول المطلوبة (*)");
+    return;
+  }
+
+  // ✅ Validation عالمي (مش مصر)
+  // حد أدنى بسيط لأي دولة: 6 أرقام / حد أقصى: 15 (تقريبًا معيار E.164 للأرقام)
+  if (phoneDigits.length < 6 || phoneDigits.length > 15) {
+    showErr("❌ رقم الهاتف غير صحيح (اكتب رقم صحيح مع كود الدولة لو متاح)");
     return;
   }
 
   setLoading(true);
 
   try {
-    const file = photoFileEl?.files?.[0] || null;
+    // ✅ منع التكرار حسب الدولة + الرقم
+    const dup = await checkDuplicateByPhoneKey(phoneKey);
+    if (dup.exists) {
+      if (dup.status === "Approved") {
+        showErr(
+          "✅ أنت بالفعل متطوع مُعتمد. لا يمكن إرسال طلب جديد بنفس الرقم.",
+        );
+      } else {
+        showErr("✅ تم استلام طلبك بالفعل وهو قيد المراجعة (Pending).");
+      }
+      return;
+    }
 
-    // ✅ صورة Base64 (أو فاضية)
+    const file = photoFileEl?.files?.[0] || null;
     const photoData = file ? await fileToSmallDataURL(file) : "";
 
     await addDoc(collection(db, "volunteer_requests"), {
       name,
-      phone,
+
+      // ✅ نخزن 3 أشكال
+      phoneRaw, // اللي المستخدم كتبه
+      phoneDigits, // الرقم بعد التنظيف
+      phoneKey, // country+digits (اللي بنمنع بيه التكرار)
+
       gender,
       joinedAt,
-      country,
+      country: countryRaw,
+      countryKey,
+
       notes,
 
-      // ✅ بيانات الصورة
       photoData,
       photoName: file?.name || "",
       photoType: file?.type || "",
@@ -133,12 +187,15 @@ form?.addEventListener("submit", async (e) => {
       msg.textContent =
         "✅ تم إرسال الطلب. انتظر موافقة الأدمن لإصدار ID رسمي.";
     if (scName) scName.textContent = name;
-    if (scPhone) scPhone.textContent = phone;
+    if (scPhone) scPhone.textContent = phoneRaw;
     if (successCard) successCard.style.display = "block";
 
     form.reset();
   } catch (err) {
     console.error(err);
+
+    // Firestore ممكن يطلب Index بسبب (phoneKey + status in)
+    // لو ظهر لك خطأ فيه رابط "Create index" ابعتهولي وهنثبته
     showErr(err?.message || "❌ حصل خطأ أثناء الإرسال (راجع Console)");
   } finally {
     setLoading(false);

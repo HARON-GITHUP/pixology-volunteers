@@ -16,7 +16,7 @@
       }
       body {
         margin: 0;
-        font-family: system-ui, Tahoma;
+        font-family: system-ui, Tahoma, Arial;
         background: var(--bg);
         color: var(--text);
         padding: 16px;
@@ -41,6 +41,8 @@
         border-radius: 12px;
         font-weight: 900;
         cursor: pointer;
+        text-decoration: none;
+        color: var(--text);
       }
       .btn.primary {
         background: rgba(11, 79, 115, 0.1);
@@ -130,6 +132,21 @@
         color: var(--muted);
         text-align: center;
       }
+      .alert {
+        margin-top: 14px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(220, 38, 38, 0.08);
+        color: #b91c1c;
+        font-weight: 900;
+        display: none;
+      }
+      @media (max-width: 820px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
       @media print {
         .bar {
           display: none;
@@ -140,6 +157,7 @@
         }
         .sheet {
           border: none;
+          padding: 0;
         }
       }
     </style>
@@ -155,7 +173,7 @@
       </div>
 
       <div class="sheet">
-        <div class="cert" id="cert">
+        <div class="cert">
           <div class="top">
             <div class="logo">PX</div>
             <div class="muted" id="orgText">Pixology Foundation</div>
@@ -165,6 +183,8 @@
           <div class="muted">
             تم إصدار هذه الشهادة لتأكيد المشاركة التطوعية داخل المؤسسة.
           </div>
+
+          <div class="alert" id="errBox"></div>
 
           <div class="grid" style="margin-top: 14px">
             <div class="row">
@@ -176,16 +196,16 @@
               <div class="v" id="vid">—</div>
             </div>
             <div class="row">
-              <div class="k">إجمالي الساعات</div>
-              <div class="v" id="hours">0</div>
+              <div class="k">رقم الشهادة</div>
+              <div class="v" id="certId">—</div>
             </div>
             <div class="row">
-              <div class="k">الحالة</div>
+              <div class="k">إجمالي الساعات وقت الإصدار</div>
+              <div class="v" id="hours">—</div>
+            </div>
+            <div class="row">
+              <div class="k">الحالة وقت الإصدار</div>
               <div class="v" id="status">—</div>
-            </div>
-            <div class="row">
-              <div class="k">تاريخ الانضمام</div>
-              <div class="v" id="joinedAt">—</div>
             </div>
             <div class="row">
               <div class="k">تاريخ الإصدار</div>
@@ -193,8 +213,8 @@
             </div>
           </div>
 
-          <div class="qr">
-            <div class="muted">QR للتحقق</div>
+          <div class="qr" id="qrSection" style="display: none">
+            <div class="muted">QR للتحقق من المتطوع</div>
             <div id="qrcode"></div>
             <div
               class="muted"
@@ -221,44 +241,57 @@
       } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
       const params = new URLSearchParams(location.search);
-      const id = (params.get("id") || "").trim();
+      const cert = (params.get("cert") || "").trim();
+
+      const errBox = document.getElementById("errBox");
+      const qrSection = document.getElementById("qrSection");
+
+      function showError(msg) {
+        errBox.textContent = msg;
+        errBox.style.display = "block";
+      }
 
       const baseDir = window.location.href.substring(
         0,
         window.location.href.lastIndexOf("/") + 1,
       );
-      const verifyUrl = `${baseDir}verify.html?id=${encodeURIComponent(id)}`;
 
-      document.getElementById("verifyLink").textContent = verifyUrl;
-
-      // QR
-      const qrBox = document.getElementById("qrcode");
-      qrBox.innerHTML = "";
-      new QRCode(qrBox, { text: verifyUrl, width: 170, height: 170 });
-
-      // issued at
-      const now = new Date();
-      document.getElementById("issuedAt").textContent =
-        now.toLocaleDateString("ar-EG");
-
-      if (!id) {
-        document.getElementById("name").textContent = "❌ لا يوجد ID";
-        document.getElementById("vid").textContent = "—";
+      if (!cert) {
+        showError(
+          "❌ لا يوجد رقم شهادة. افتح: certificate.html?cert=CERT-000001",
+        );
       } else {
-        const snap = await getDoc(doc(db, "pixology_volunteers", id));
+        const snap = await getDoc(doc(db, "certificates", cert));
         if (!snap.exists()) {
-          document.getElementById("name").textContent = "❌ متطوع غير موجود";
-          document.getElementById("vid").textContent = id;
+          showError("❌ الشهادة غير موجودة");
+          document.getElementById("certId").textContent = cert;
         } else {
-          const d = snap.data();
-          document.getElementById("name").textContent = d.name || "—";
-          document.getElementById("vid").textContent = d.volunteerId || id;
-          document.getElementById("hours").textContent =
-            String(d.hours ?? 0) + " ساعة";
-          document.getElementById("status").textContent = d.status || "Active";
-          document.getElementById("joinedAt").textContent = d.joinedAt || "—";
+          const c = snap.data();
+
           document.getElementById("orgText").textContent =
-            d.organization || "Pixology Foundation";
+            c.organization || "Pixology Foundation";
+          document.getElementById("name").textContent = c.name || "—";
+          document.getElementById("vid").textContent = c.volunteerId || "—";
+          document.getElementById("certId").textContent = c.certId || cert;
+          document.getElementById("hours").textContent =
+            String(c.hoursAtIssue ?? 0) + " ساعة";
+          document.getElementById("status").textContent =
+            c.statusAtIssue || "Active";
+
+          const t = c.issuedAt?.toDate ? c.issuedAt.toDate() : null;
+          document.getElementById("issuedAt").textContent = t
+            ? t.toLocaleString("ar-EG")
+            : "—";
+
+          // QR يودّي لصفحة verify للمتطوع
+          const verifyUrl = `${baseDir}verify.html?id=${encodeURIComponent(c.volunteerId || "")}`;
+          document.getElementById("verifyLink").textContent = verifyUrl;
+
+          const qrBox = document.getElementById("qrcode");
+          qrBox.innerHTML = "";
+          new QRCode(qrBox, { text: verifyUrl, width: 170, height: 170 });
+
+          qrSection.style.display = "grid";
         }
       }
 

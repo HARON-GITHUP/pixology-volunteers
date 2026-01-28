@@ -106,6 +106,55 @@
             * لو الصورة كبيرة قوي الأفضل ما ترفعهاش دلوقتي (عشان حجم Firestore)
           </div>
         </div>
+        <!-- ✅ Super Admin: إدارة الأدمنز -->
+        <section
+          class="card superOnly"
+          id="adminManager"
+          style="margin-top: 14px; display: none"
+        >
+          <h2>إدارة الأدمنز (Super Admin)</h2>
+          <div class="hint">
+            * هنا تقدر تضيف/تعطل/تغير صلاحيات الأدمنز عن طريق UID
+          </div>
+
+          <div class="formRow">
+            <input id="aUid" placeholder="UID (من Authentication)" />
+            <select id="aRole">
+              <option value="admin">admin</option>
+              <option value="super_admin">super_admin</option>
+            </select>
+
+            <select id="aActive">
+              <option value="true">active: true</option>
+              <option value="false">active: false</option>
+            </select>
+
+            <button id="aSave" class="btn btn--solid" type="button">
+              💾 حفظ/تحديث
+            </button>
+          </div>
+
+          <div class="formRow">
+            <button id="aLoad" class="btn btn--outline" type="button">
+              🔄 تحميل قائمة الأدمنز
+            </button>
+            <small class="muted" id="aMsg"></small>
+          </div>
+
+          <div class="tableWrap" style="margin-top: 10px">
+            <table style="min-width: 800px">
+              <thead>
+                <tr>
+                  <th>UID</th>
+                  <th>Role</th>
+                  <th>Active</th>
+                  <th>إجراء سريع</th>
+                </tr>
+              </thead>
+              <tbody id="aRows"></tbody>
+            </table>
+          </div>
+        </section>
 
         <!-- ✅ المتطوعين المعتمدين -->
         <h2>المتطوعين (Approved)</h2>

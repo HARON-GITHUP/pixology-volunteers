@@ -134,3 +134,12 @@ th {
   margin-top: 4px;
   font-weight: 700;
 }
+
+.muted {
+  opacity: 0.85;
+  font-weight: 800;
+}
+
+.superOnly .tableWrap table {
+  min-width: 800px;
+}

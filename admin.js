@@ -19,6 +19,105 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+// تحميل قائمة الأدمنز (Super Admin فقط)
+aLoad?.addEventListener("click", async () => {
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  setAdminMsg("جارٍ التحميل...");
+
+  try {
+    // هنجيب كل users اللي role = admin أو super_admin
+    // (ملاحظة: يحتاج index لو كبر، لكن الآن تمام)
+    const q1 = query(collection(db, "users"), where("role", "==", "admin"));
+    const q2 = query(
+      collection(db, "users"),
+      where("role", "==", "super_admin"),
+    );
+
+    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+    const list = [
+      ...s1.docs.map((d) => ({ uid: d.id, ...d.data() })),
+      ...s2.docs.map((d) => ({ uid: d.id, ...d.data() })),
+    ].map((x) => ({
+      uid: x.uid,
+      role: x.role || "admin",
+      active: x.active === true,
+    }));
+
+    // إزالة التكرار لو UID موجود مرتين (احتياط)
+    const map = new Map();
+    list.forEach((x) => map.set(x.uid, x));
+    renderAdminUsers(Array.from(map.values()));
+
+    setAdminMsg(`✅ تم التحميل (${map.size})`);
+  } catch (e) {
+    console.error(e);
+    setAdminMsg("❌ فشل التحميل");
+  }
+});
+
+// حفظ/تحديث أدمن
+aSave?.addEventListener("click", async () => {
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  const uid = (aUid?.value || "").trim();
+  const role = (aRole?.value || "admin").trim();
+  const active = (aActive?.value || "true") === "true";
+
+  if (!uid) {
+    setAdminMsg("❌ اكتب UID");
+    return;
+  }
+
+  setAdminMsg("جارٍ الحفظ...");
+
+  try {
+    await setDoc(doc(db, "users", uid), { role, active }, { merge: true });
+    setAdminMsg("✅ تم الحفظ");
+    aLoad?.click(); // تحديث القائمة
+  } catch (e) {
+    console.error(e);
+    setAdminMsg("❌ فشل الحفظ (تأكد إنك سوبر أدمن وأن الـ Rules صح)");
+  }
+});
+
+// أزرار داخل الجدول
+aRows?.addEventListener("click", async (e) => {
+  const btn = e.target?.closest?.("button[data-act]");
+  if (!btn) return;
+
+  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
+
+  const act = btn.dataset.act;
+  const uid = btn.dataset.uid;
+  if (!uid) return;
+
+  if (act === "fill") {
+    if (aUid) aUid.value = uid;
+    if (aRole) aRole.value = btn.dataset.role || "admin";
+    if (aActive)
+      aActive.value = btn.dataset.active === "true" ? "true" : "false";
+    setAdminMsg("✅ تم تحميل بيانات المستخدم في الفورم");
+    return;
+  }
+
+  if (act === "toggle") {
+    const current = btn.dataset.active === "true";
+    const next = !current;
+
+    setAdminMsg("جارٍ التحديث...");
+
+    try {
+      await updateDoc(doc(db, "users", uid), { active: next });
+      setAdminMsg("✅ تم التحديث");
+      aLoad?.click();
+    } catch (e2) {
+      console.error(e2);
+      setAdminMsg("❌ فشل التحديث");
+    }
+  }
+});
 
 /** ========== Collections ========== */
 const REQ_COL = "volunteer_requests";
@@ -47,6 +146,15 @@ const toastEl = document.getElementById("toast");
 const selectAll = document.getElementById("selectAll");
 const deleteSelectedBtn = document.getElementById("deleteSelected");
 const clearSelectionBtn = document.getElementById("clearSelection");
+// ===== Super Admin Manager DOM =====
+const adminManager = document.getElementById("adminManager");
+const aUid = document.getElementById("aUid");
+const aRole = document.getElementById("aRole");
+const aActive = document.getElementById("aActive");
+const aSave = document.getElementById("aSave");
+const aLoad = document.getElementById("aLoad");
+const aMsg = document.getElementById("aMsg");
+const aRows = document.getElementById("aRows");
 
 // ===== Manual Add (Step 2) DOM =====
 const mName = document.getElementById("mName");
@@ -124,6 +232,42 @@ function fileToDataURL(file) {
     r.onerror = reject;
     r.readAsDataURL(file);
   });
+}
+function setAdminMsg(text = "") {
+  if (!aMsg) return;
+  aMsg.textContent = text;
+}
+
+function canManageAdmins() {
+  return CURRENT_ROLE === "super_admin";
+}
+
+function renderAdminUsers(list) {
+  if (!aRows) return;
+
+  if (!list.length) {
+    aRows.innerHTML = `
+      <tr><td colspan="4" style="text-align:center; padding:14px; opacity:.8;">
+        لا يوجد أدمنز
+      </td></tr>`;
+    return;
+  }
+
+  aRows.innerHTML = list
+    .map(
+      (u) => `
+    <tr>
+      <td>${u.uid}</td>
+      <td>${u.role}</td>
+      <td>${String(u.active)}</td>
+      <td style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="miniBtn" data-act="fill" data-uid="${u.uid}" data-role="${u.role}" data-active="${u.active}">تعديل</button>
+        <button class="miniBtn" data-act="toggle" data-uid="${u.uid}" data-active="${u.active}">${u.active ? "تعطيل" : "تفعيل"}</button>
+      </td>
+    </tr>
+  `,
+    )
+    .join("");
 }
 
 /** ✅ تحقق Role من users/{uid} (admin + super_admin) */
@@ -273,6 +417,18 @@ async function generateVolunteerId() {
 
   return `VOL-${String(nextNumber).padStart(6, "0")}`;
 }
+async function generateCertificateId() {
+  const counterRef = doc(db, COUNTERS_COL, "certificates");
+  const nextNumber = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(counterRef);
+    const current = snap.exists() ? snap.data().value || 0 : 0;
+    const next = current + 1;
+    tx.set(counterRef, { value: next }, { merge: true });
+    return next;
+  });
+
+  return `CERT-${String(nextNumber).padStart(6, "0")}`;
+}
 
 /** ✅ إضافة متطوع يدويًا (Step 2) */
 mAddBtn?.addEventListener("click", async () => {
@@ -376,79 +532,109 @@ function renderRequests(reqDocs) {
 }
 
 /** موافقة/رفض الطلب */
-reqRowsEl?.addEventListener("click", async (e) => {
+rowsEl?.addEventListener("click", async (e) => {
   const btn = e.target?.closest?.("button[data-action]");
   if (!btn) return;
 
-  const row = btn.closest("tr");
-  const reqId = row?.dataset?.reqid;
-  if (!reqId) return;
-
   const action = btn.dataset.action;
+  const row = btn.closest("tr");
+  const docId = row?.dataset?.docid;
+  if (!docId) return;
 
-  const ok = confirm(
-    action === "approve"
-      ? "تأكيد الموافقة وإصدار ID رسمي؟"
-      : "تأكيد رفض الطلب؟",
-  );
-  if (!ok) return;
+  // ===== حفظ تعديل =====
+  if (action === "save") {
+    const hoursInput = row.querySelector("input[data-field='hours']");
+    const statusSelect = row.querySelector("select[data-field='status']");
+    const notesInput = row.querySelector("input[data-field='notes']");
 
-  row.querySelectorAll("button").forEach((b) => (b.disabled = true));
-  const oldText = btn.textContent;
-  btn.textContent = "جارٍ...";
+    const newHours = Number(hoursInput?.value || 0);
+    const newStatus = (statusSelect?.value || "Active").trim();
+    const newNotes = (notesInput?.value || "").trim();
 
-  try {
-    const reqRef = doc(db, REQ_COL, reqId);
-    const snap = await getDoc(reqRef);
-    if (!snap.exists()) {
-      showToast("❌ الطلب غير موجود");
-      return;
-    }
-    const r = snap.data();
+    btn.disabled = true;
+    btn.textContent = "جارٍ الحفظ...";
 
-    if (action === "reject") {
-      await updateDoc(reqRef, {
-        status: "Rejected",
-        rejectedAt: serverTimestamp(),
+    try {
+      await updateDoc(doc(db, VOL_COL, docId), {
+        hours: Number.isFinite(newHours) ? newHours : 0,
+        status: newStatus,
+        notes: newNotes,
       });
-      showToast("✅ تم رفض الطلب");
-      return;
+
+      btn.textContent = "✅ تم";
+      setTimeout(() => {
+        btn.textContent = "حفظ";
+        btn.disabled = false;
+      }, 700);
+    } catch (err) {
+      console.error(err);
+      btn.textContent = "❌ فشل";
+      setTimeout(() => {
+        btn.textContent = "حفظ";
+        btn.disabled = false;
+      }, 900);
     }
+    return;
+  }
 
-    const volunteerId = await generateVolunteerId();
+  // ===== إصدار شهادة =====
+  if (action === "issueCert") {
+    if (!ADMIN_OK) return alert("❌ غير مسموح");
 
-    await setDoc(doc(db, VOL_COL, volunteerId), {
-      name: r.name || "",
-      volunteerId,
-      phone: digitsOnly(r.phone || ""),
-      gender: r.gender || "",
-      joinedAt: r.joinedAt || "",
-      hours: 0,
-      status: "Active",
-      photoData: r.photoData || "",
-      notes: r.notes || "",
-      country: r.country || "",
-      organization: "Pixology Foundation",
-      createdAt: serverTimestamp(),
-      approvedFromRequestId: reqId,
-    });
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = "جارٍ الإصدار...";
 
-    await updateDoc(reqRef, {
-      status: "Approved",
-      approvedVolunteerId: volunteerId,
-      approvedAt: serverTimestamp(),
-    });
+    try {
+      // اقرأ المتطوع
+      const vRef = doc(db, VOL_COL, docId);
+      const vSnap = await getDoc(vRef);
+      if (!vSnap.exists()) {
+        alert("❌ المتطوع غير موجود");
+        return;
+      }
 
-    showToast("✅ تمت الموافقة", `ID: ${volunteerId}`);
-    btn.textContent = "تم";
-  } catch (err) {
-    console.error(err);
-    showToast("❌ حصل خطأ", err.message || "");
-    btn.textContent = oldText;
-  } finally {
-    row.querySelectorAll("button").forEach((b) => (b.disabled = false));
+      const v = vSnap.data();
+      const status = String(v.status || "Active").trim().toLowerCase();
+
+      // ممنوع إصدار شهادة لو غير نشط
+      if (status === "inactive") {
+        alert("❌ لا يمكن إصدار شهادة لمتطوع Inactive");
+        return;
+      }
+
+      // ID للشهادة
+      const certId = await generateCertificateId();
+
+      // سجّل الشهادة في Firestore
+      await setDoc(doc(db, "certificates", certId), {
+        certId,
+        volunteerDocId: docId,
+        volunteerId: v.volunteerId || docId,
+        name: v.name || "",
+        hoursAtIssue: Number(v.hours || 0),
+        statusAtIssue: v.status || "Active",
+        joinedAt: v.joinedAt || "",
+        country: v.country || "",
+        organization: v.organization || "Pixology Foundation",
+        issuedAt: serverTimestamp(),
+        issuedByUid: auth.currentUser?.uid || "",
+      });
+
+      showToast("✅ تم إصدار شهادة", certId);
+
+      // افتح صفحة الشهادة
+      window.open(`certificate.html?cert=${encodeURIComponent(certId)}`, "_blank");
+    } catch (err) {
+      console.error(err);
+      alert("❌ حصل خطأ أثناء إصدار الشهادة");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = old;
+    }
   }
 });
+
 
 /** حفظ تعديل (ساعات/حالة/ملاحظات) */
 rowsEl?.addEventListener("click", async (e) => {
@@ -574,6 +760,10 @@ logoutBtn?.addEventListener("click", async () => {
 onAuthStateChanged(auth, async (user) => {
   ADMIN_OK = false;
   CURRENT_ROLE = null;
+  if (adminManager) {
+    adminManager.style.display =
+      CURRENT_ROLE === "super_admin" ? "block" : "none";
+  }
 
   if (!user) {
     if (loginBox) loginBox.style.display = "block";
@@ -595,6 +785,14 @@ onAuthStateChanged(auth, async (user) => {
     setMiniMsg("");
     return;
   }
+  <td style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button class="miniBtn" data-action="save">
+      حفظ
+    </button>
+    <button class="miniBtn" data-action="issueCert">
+      إصدار شهادة
+    </button>
+  </td>;
 
   const res = await checkAdmin(user);
   ADMIN_OK = res.ok;
