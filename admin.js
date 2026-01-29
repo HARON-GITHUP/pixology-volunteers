@@ -13,6 +13,7 @@ import {
   deleteDoc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+console.log("PROJECT:", db.app.options.projectId);
 
 import {
   signInWithEmailAndPassword,

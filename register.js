@@ -16,6 +16,7 @@ import {
   getDocs,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+console.log("PROJECT:", db.app.options.projectId);
 
 const form = document.getElementById("regForm");
 const msg = document.getElementById("msg");
