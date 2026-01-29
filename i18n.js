@@ -9,6 +9,7 @@ const I18N = {
     navAdmin: "لوحة التحكم",
     navCerts: "📜 كل الشهادات",
     navApply: "تقديم طلب تطوع",
+    navContact: "راسلنا",
 
     reqLabel: "الطلبات",
     volLabel: "المتطوعين",
@@ -39,6 +40,7 @@ const I18N = {
     aboutPageSub: "مؤسسة بيكسولوجي للسلام والتنمية وحقوق الإنسان",
     videoNote: "فيديو تعريفي عن مؤسسة بيكسولوجي للسلام والتنمية وحقوق الإنسان",
     videoFallback: "المتصفح لا يدعم تشغيل الفيديو",
+    openVideo: "فتح الفيديو في تبويب جديد",
 
     aboutNameAr: "مؤسسة بيكسولوجي للسلام والتنمية وحقوق الإنسان",
     aboutNameEn: "Pixology Foundation for Peace, Development & Human Rights",
@@ -77,6 +79,16 @@ const I18N = {
     value4: "المساواة",
     value5: "المسؤولية المجتمعية",
     value6: "الاستدامة",
+
+    // CONTACT PAGE
+    contactTitle: "راسلنا",
+    contactSub: "يسعدنا تواصلكم معنا عبر القنوات الرسمية التالية",
+    contactEmailTitle: "البريد الإلكتروني",
+    contactPhoneTitle: "رقم التواصل",
+    contactSocialTitle: "مواقع التواصل",
+    contactAddressTitle: "العنوان",
+    contactAddress: "كونيتيكت – الولايات المتحدة الأمريكية",
+    mapTitle: "خريطة المقر",
   },
 
   en: {
@@ -88,6 +100,7 @@ const I18N = {
     navAdmin: "Admin Panel",
     navCerts: "📜 Certificates",
     navApply: "Volunteer Application",
+    navContact: "Contact Us",
 
     reqLabel: "Requests",
     volLabel: "Volunteers",
@@ -119,6 +132,7 @@ const I18N = {
     videoNote:
       "Intro video — Pixology Foundation for Peace, Development & Human Rights",
     videoFallback: "Your browser does not support video playback.",
+    openVideo: "Open video in new tab",
 
     aboutNameAr: "Pixology Foundation for Peace, Development & Human Rights",
     aboutNameEn: "Pixology Foundation for Peace, Development & Human Rights",
@@ -157,6 +171,17 @@ const I18N = {
     value4: "Equality",
     value5: "Social responsibility",
     value6: "Sustainability",
+
+    // CONTACT PAGE
+    contactTitle: "Contact Us",
+    contactSub:
+      "We’re happy to hear from you through the official channels below",
+    contactEmailTitle: "Email",
+    contactPhoneTitle: "Phone",
+    contactSocialTitle: "Social Media",
+    contactAddressTitle: "Address",
+    contactAddress: "Connecticut, United States of America",
+    mapTitle: "Headquarters Map",
   },
 };
 

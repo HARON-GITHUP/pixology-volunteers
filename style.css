@@ -652,3 +652,60 @@ html[dir="ltr"] .tools__meta {
     text-align: center;
   }
 }
+
+/* ===== Contact Page ===== */
+.contact-page {
+  padding: 18px 0 60px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.contact-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.contact-card h3 {
+  margin: 0 0 8px;
+}
+
+.contact-card a {
+  color: var(--blue-700);
+  text-decoration: none;
+}
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 700px) {
+  .contact-page {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Responsive Map ===== */
+.map-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+  margin-top: 10px;
+}
+
+.map-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
