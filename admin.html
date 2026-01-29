@@ -21,6 +21,9 @@
           <option value="Certified">Certified</option>
         </select>
         <a id="goSuper" href="super.html" style="display: none">لوحة السوبر</a>
+        <button class="link link--btn" id="langToggle" type="button">EN</button>
+        <script src="i18n.js"></script>
+
         <button id="exportCsv">تصدير CSV</button>
         <button id="logout">تسجيل خروج</button>
       </div>
@@ -147,5 +150,13 @@
     <script type="module" src="admin.js"></script>
 
     <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(console.error);
+        });
+      }
+    </script>
   </body>
 </html>

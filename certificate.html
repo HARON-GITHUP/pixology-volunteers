@@ -15,6 +15,11 @@
         </div>
 
         <div class="actions">
+          <button class="link link--btn" id="langToggle" type="button">
+            EN
+          </button>
+          <script src="i18n.js"></script>
+
           <a class="btn ghost" href="admin.html">⬅️ رجوع للأدمن</a>
           <button class="btn" id="exportCsv">⬇️ Export CSV</button>
           <button class="btn danger" id="logout">تسجيل خروج</button>
@@ -68,5 +73,13 @@
     </div>
 
     <script type="module" src="certificates.js"></script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(console.error);
+        });
+      }
+    </script>
   </body>
 </html>

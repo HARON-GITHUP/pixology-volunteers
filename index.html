@@ -7,26 +7,29 @@
     <link rel="stylesheet" href="style.css" />
     <meta name="theme-color" content="#0b1620" />
   </head>
-  
 
   <body>
     <!-- TOP NAV -->
     <header class="topnav">
       <div class="container topnav__wrap">
         <a class="brand" href="index.html">
-          <img
-            src="p.jpg"
-            alt="Pixology"
-            style="width: 180px; height: 80px"
-          />
+          <img src="p.jpg" alt="Pixology" style="width: 180px; height: 80px" />
         </a>
 
         <div class="topnav__actions">
-  <a class="link" href="admin.html">لوحة التحكم</a>
-  <a class="link" href="certificates.html">📜 كل الشهادات</a>
-  <a class="btn btn--solid" href="register.html">تقديم طلب تطوع</a>
-</div>
+          <!-- ✅ زر تغيير اللغة -->
+          <button class="link link--btn" id="langToggle" type="button">
+            EN
+          </button>
 
+          <a class="link" href="about.html" data-i18n="navAbout">من نحن</a>
+          <a class="link" href="admin.html" data-i18n="navAdmin">لوحة التحكم</a>
+          <a class="link" href="certificates.html" data-i18n="navCerts"
+            >📜 كل الشهادات</a
+          >
+          <a class="btn btn--solid" href="register.html" data-i18n="navApply"
+            >تقديم طلب تطوع</a
+          >
         </div>
       </div>
     </header>
@@ -39,14 +42,14 @@
       <div class="course-card__img hero-img">
         <div class="hero-text">
           <span class="badge-count">
-            الطلبات <b id="reqCount">—</b>
+            <span data-i18n="reqLabel">الطلبات</span> <b id="reqCount">—</b>
           </span>
           <span class="badge-type">
-            المتطوعين <b id="volCount">—</b>
+            <span data-i18n="volLabel">المتطوعين</span> <b id="volCount">—</b>
           </span>
 
-          <h2>Pixology Foundation</h2>
-          <p>مؤسسة بيكسولوجي للسلام والتنمية</p>
+          <h2 data-i18n="brandTitle">Pixology Foundation</h2>
+          <p data-i18n="brandSub">مؤسسة بيكسولوجي للسلام والتنمية</p>
         </div>
       </div>
     </section>
@@ -55,7 +58,8 @@
     <section class="section-title">
       <div class="container section-title__wrap">
         <h2 class="section-title__h">
-          المتطوعين <span>المعتمدين</span>
+          <span data-i18n="secVolTitle">المتطوعين</span>
+          <span data-i18n="secVolTitleSpan">المعتمدين</span>
         </h2>
         <div class="section-title__lines" aria-hidden="true">
           <span></span><span></span>
@@ -71,27 +75,39 @@
           class="tools__input"
           type="text"
           placeholder="ابحث عن متطوع..."
+          data-i18n-placeholder="searchPh"
         />
 
         <select id="filterGender" class="tools__select">
-          <option value="">الجنس</option>
-          <option value="ذكر">ذكر</option>
-          <option value="انثى">انثى</option>
+          <option value="" data-i18n-option="genderPh">الجنس</option>
+          <option value="ذكر" data-i18n-option="male">ذكر</option>
+          <option value="انثى" data-i18n-option="female">انثى</option>
         </select>
 
         <select id="filterGrade" class="tools__select">
-          <option value="">الترتيب</option>
-          <option value="اكبر عدد ساعات">أكبر عدد ساعات</option>
-          <option value="اقل عدد ساعات">أقل عدد ساعات</option>
+          <option value="" data-i18n-option="sortPh">الترتيب</option>
+          <option value="اكبر عدد ساعات" data-i18n-option="sortHigh">
+            أكبر عدد ساعات
+          </option>
+          <option value="اقل عدد ساعات" data-i18n-option="sortLow">
+            أقل عدد ساعات
+          </option>
         </select>
 
-        <button id="clearFilters" class="btn btn--outline" type="button">
+        <button
+          id="clearFilters"
+          class="btn btn--outline"
+          type="button"
+          data-i18n="clear"
+        >
           مسح
         </button>
       </div>
 
-      <div class="tools__meta">
-        <span id="resultCount">0</span> متطوع
+      <!-- ✅ wrap علشان نترجم كلمة "متطوع" بدون كسر الرقم -->
+      <div class="tools__meta" id="resultWrap">
+        <span id="resultCount">0</span>
+        <span data-i18n="volunteersWord">متطوع</span>
       </div>
     </section>
 
@@ -108,39 +124,31 @@
     <footer class="footer">
       <div class="container footer__wrap">
         <div class="footer__center">
-          <img src="${img}" alt="..." loading="lazy" decoding="async" onerror="this.src='p.jpg'"/>
+          <!-- ✅ ثابت بدل ${img} -->
+          <img
+            src="p.jpg"
+            alt="Pixology"
+            loading="lazy"
+            decoding="async"
+            onerror="this.src = 'p.jpg'"
+          />
 
-
-          <p class="footer__note">
+          <p class="footer__note" data-i18n="footerNote">
             تم إنشاء هذه المنصة لتوثيق المتطوعين وإبراز إنجازاتهم بشكل رسمي.
           </p>
 
-          <a href="mailto:info@pixologyfoundation.org">
-            info@pixologyfoundation.org
-          </a>
+          <a href="mailto:info@pixologyfoundation.org"
+            >info@pixologyfoundation.org</a
+          >
         </div>
       </div>
     </footer>
 
     <!-- JS -->
-    <!-- لو app.js بيعمل حركات/ثيم سيبه -->
     <script src="app.js"></script>
-
-    <!-- ده الملف اللي هيجيب المتطوعين من Firebase -->
     <script type="module" src="index.js"></script>
 
-    <!-- ❌ معطّل لأن مفيش sw.js -->
-    <!--
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js");
-      }
-    </script>
-    -->
+    <!-- ✅ لغة الموقع -->
+    <script src="i18n.js"></script>
   </body>
 </html>
-        <div>
-          <button
-            class="modal__close"
-            id="cmClose"
-            aria-label="إغلاق النافذة"

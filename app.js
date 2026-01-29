@@ -114,3 +114,33 @@ document.querySelectorAll('[data-modal="details"]').forEach((btn) => {
     if (card) openCourseModal(card);
   });
 });
+
+// ===== About Modal =====
+(function () {
+  const aboutBtn = document.getElementById("aboutBtn");
+  const modal = document.getElementById("aboutModal");
+  const closeBtn = document.getElementById("aboutClose");
+  const backdrop = document.getElementById("aboutBackdrop");
+
+  if (!aboutBtn || !modal || !closeBtn || !backdrop) return;
+
+  function openModal() {
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeModal() {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+  aboutBtn.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  backdrop.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+})();

@@ -447,3 +447,208 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===================== ABOUT PAGE (Append to end of style.css) ===================== */
+
+/* Active link (لو عندك active already سيبه، الكود ده مش هيضر) */
+.topnav .link.active {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+/* Page Hero */
+.page-hero {
+  padding: 22px 0 22px;
+}
+
+.page-hero__wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 18px;
+}
+
+.page-hero__wrap h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.page-hero__wrap p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* Layout */
+.about-page {
+  padding: 14px 0 60px;
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  gap: 18px;
+  align-items: start;
+}
+
+/* Video card */
+.about-video {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+}
+
+.video-note {
+  margin: 10px 6px 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* Text card */
+.about-text {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 18px;
+}
+
+.about-text h2 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.about-text h2 span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.about-text p {
+  margin: 10px 0;
+  line-height: 1.95;
+  color: var(--text);
+}
+
+.about-text hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+.about-text h3 {
+  margin: 14px 0 8px;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.about-text ul {
+  margin: 0;
+  padding: 0 18px 0 0; /* RTL */
+  line-height: 1.95;
+  color: var(--text);
+}
+
+.about-text li {
+  margin: 6px 0;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .about-page {
+    grid-template-columns: 1fr;
+  }
+  .page-hero__wrap {
+    padding: 16px;
+  }
+}
+
+/* ===== LTR tweaks when English ===== */
+html[dir="ltr"] body {
+  text-align: left;
+}
+
+html[dir="ltr"] .topnav__actions {
+  direction: ltr;
+}
+
+html[dir="ltr"] .tools__row {
+  direction: ltr;
+}
+
+html[dir="ltr"] .tools__meta {
+  direction: ltr;
+}
+
+/* ===== Responsive Video (Mobile Friendly) ===== */
+.video-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+}
+
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* تحسينات موبايل للـ About */
+@media (max-width: 980px) {
+  .about-page {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .page-hero__wrap {
+    padding: 14px;
+  }
+  .about-text {
+    padding: 14px;
+  }
+  .video-note {
+    font-size: 0.92rem;
+  }
+}
+
+/* ===== Mobile nav wrap ===== */
+@media (max-width: 720px) {
+  .topnav__wrap {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topnav__actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .topnav__actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
