@@ -13,6 +13,7 @@ import {
   deleteDoc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
 console.log("PROJECT:", db.app.options.projectId);
 
 import {
@@ -30,8 +31,8 @@ const COUNTERS_COL = "counters";
 const loginBox = document.getElementById("loginBox");
 const dataBox = document.getElementById("dataBox");
 
-const reqRowsEl = document.getElementById("reqRows");
-const rowsEl = document.getElementById("rows");
+const reqRowsEl = document.getElementById("reqRows"); // ✅ طلبات التطوع
+const rowsEl = document.getElementById("rows"); // ✅ المتطوعين
 
 const searchEl = document.getElementById("search");
 const filterStatusEl = document.getElementById("filterStage");
@@ -313,6 +314,7 @@ mAddBtn?.addEventListener("click", async () => {
       organization: "Pixology Foundation",
       createdAt: serverTimestamp(),
       addedManually: true,
+      addedByUid: auth.currentUser?.uid || "",
     });
 
     showToast("✅ تمت الإضافة", `ID: ${volunteerId}`);
@@ -373,41 +375,89 @@ function renderRequests(reqDocs) {
     .join("");
 }
 
-/** ✅ أزرار الجدول (save / issueCert / approve / reject) */
+/** ✅✅ أزرار طلبات التطوع (approve / reject) — (المكان الصح: reqRowsEl) */
+reqRowsEl?.addEventListener("click", async (e) => {
+  const btn = e.target?.closest?.("button[data-action]");
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  if (action !== "approve" && action !== "reject") return;
+
+  if (!ADMIN_OK) return alert("❌ غير مسموح");
+
+  const row = btn.closest("tr");
+  const reqId = row?.dataset?.reqid;
+  if (!reqId) return;
+
+  btn.disabled = true;
+
+  try {
+    if (action === "approve") {
+      // ✅ transaction: اقرأ الطلب + أنشئ VOL + حدّث الطلب
+      await runTransaction(db, async (tx) => {
+        const reqRef = doc(db, REQ_COL, reqId);
+        const reqSnap = await tx.get(reqRef);
+        if (!reqSnap.exists()) throw new Error("Request not found");
+
+        const r = reqSnap.data() || {};
+        const currentStatus = String(r.status || "Pending").trim();
+        if (currentStatus !== "Pending") return;
+
+        const volunteerId = await generateVolunteerId(); // يستخدم transaction داخلي (مسموح)
+
+        // أنشئ متطوع رسمي
+        const volRef = doc(db, VOL_COL, volunteerId);
+        tx.set(volRef, {
+          name: r.name || "",
+          volunteerId,
+          phone: r.phone || "",
+          gender: r.gender || "",
+          joinedAt: r.joinedAt || "",
+          country: r.country || "مصر",
+          notes: r.notes || "",
+          photoData: r.photoData || r.photoUrl || "",
+          hours: 0,
+          status: "Active",
+          organization: "Pixology Foundation",
+          createdAt: serverTimestamp(),
+          createdFromRequest: true,
+          requestId: reqId,
+          approvedByUid: auth.currentUser?.uid || "",
+        });
+
+        // حدّث الطلب
+        tx.update(reqRef, {
+          status: "Approved",
+          volunteerId,
+          approvedAt: serverTimestamp(),
+          approvedByUid: auth.currentUser?.uid || "",
+        });
+      });
+
+      showToast("✅ تم قبول الطلب");
+    } else {
+      await updateDoc(doc(db, REQ_COL, reqId), {
+        status: "Rejected",
+        rejectedAt: serverTimestamp(),
+        rejectedByUid: auth.currentUser?.uid || "",
+      });
+      showToast("✅ تم رفض الطلب");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ حصل خطأ: " + (err?.message || err));
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/** ✅ أزرار جدول المتطوعين (save / issueCert) */
 rowsEl?.addEventListener("click", async (e) => {
   const btn = e.target?.closest?.("button[data-action]");
   if (!btn) return;
 
   const action = btn.dataset.action;
 
-  // ===== Requests (approve/reject) =====
-  if (action === "approve" || action === "reject") {
-    if (!ADMIN_OK) return alert("❌ غير مسموح");
-
-    const row = btn.closest("tr");
-    const reqId = row?.dataset?.reqid;
-    if (!reqId) return;
-
-    btn.disabled = true;
-
-    try {
-      if (action === "approve") {
-        await updateDoc(doc(db, REQ_COL, reqId), { status: "Approved" });
-        showToast("✅ تم قبول الطلب");
-      } else {
-        await updateDoc(doc(db, REQ_COL, reqId), { status: "Rejected" });
-        showToast("✅ تم رفض الطلب");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("❌ حصل خطأ");
-    } finally {
-      btn.disabled = false;
-    }
-    return;
-  }
-
-  // ===== Volunteers Table (save/issueCert) =====
   const row = btn.closest("tr");
   const docId = row?.dataset?.docid;
   if (!docId) return;
@@ -612,7 +662,6 @@ onAuthStateChanged(auth, async (user) => {
   ADMIN_OK = res.ok;
   CURRENT_ROLE = res.role;
 
-  // ✅ خزّن الدور عشان super.html يقدر يشيّك بسرعة (اختياري)
   localStorage.setItem("role", CURRENT_ROLE || "");
 
   if (!res.ok) {
@@ -620,6 +669,7 @@ onAuthStateChanged(auth, async (user) => {
     await signOut(auth);
     return;
   }
+
   const goSuper = document.getElementById("goSuper");
   if (goSuper && CURRENT_ROLE === "super_admin") {
     goSuper.style.display = "inline-block";
