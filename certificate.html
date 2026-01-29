@@ -2,302 +2,71 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <title>شهادة تطوع | Pixology</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      :root {
-        --bg: #f3f6fb;
-        --card: #fff;
-        --text: #0f172a;
-        --muted: #64748b;
-        --border: #e5e7eb;
-        --gold: #caa336;
-        --blue: #0b4f73;
-      }
-      body {
-        margin: 0;
-        font-family: system-ui, Tahoma, Arial;
-        background: var(--bg);
-        color: var(--text);
-        padding: 16px;
-      }
-      .wrap {
-        max-width: 980px;
-        margin: auto;
-        display: grid;
-        gap: 14px;
-      }
-      .bar {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .btn {
-        border: 1px solid var(--border);
-        background: #fff;
-        padding: 10px 12px;
-        border-radius: 12px;
-        font-weight: 900;
-        cursor: pointer;
-        text-decoration: none;
-        color: var(--text);
-      }
-      .btn.primary {
-        background: rgba(11, 79, 115, 0.1);
-        border-color: rgba(11, 79, 115, 0.25);
-      }
-      .sheet {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 22px;
-      }
-      .cert {
-        border: 2px solid rgba(202, 163, 54, 0.55);
-        border-radius: 18px;
-        padding: 22px;
-        background: linear-gradient(
-          180deg,
-          rgba(202, 163, 54, 0.1),
-          transparent 55%
-        );
-      }
-      .top {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-      }
-      .logo {
-        width: 54px;
-        height: 54px;
-        border-radius: 16px;
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--border);
-        font-weight: 1100;
-        color: var(--blue);
-        background: rgba(11, 79, 115, 0.06);
-      }
-      h1 {
-        margin: 12px 0 6px;
-        font-size: 30px;
-      }
-      .muted {
-        color: var(--muted);
-        font-weight: 900;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-top: 16px;
-      }
-      .row {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 10px 12px;
-        background: rgba(15, 23, 42, 0.02);
-      }
-      .k {
-        color: var(--muted);
-        font-weight: 900;
-        margin-bottom: 4px;
-      }
-      .v {
-        font-weight: 1100;
-        word-break: break-word;
-      }
-      .qr {
-        display: grid;
-        place-items: center;
-        gap: 8px;
-        margin-top: 14px;
-      }
-      .sign {
-        margin-top: 18px;
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-      .line {
-        width: 220px;
-        border-top: 2px solid rgba(15, 23, 42, 0.25);
-        padding-top: 8px;
-        font-weight: 900;
-        color: var(--muted);
-        text-align: center;
-      }
-      .alert {
-        margin-top: 14px;
-        padding: 12px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background: rgba(220, 38, 38, 0.08);
-        color: #b91c1c;
-        font-weight: 900;
-        display: none;
-      }
-      @media (max-width: 820px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
-      }
-      @media print {
-        .bar {
-          display: none;
-        }
-        body {
-          background: #fff;
-          padding: 0;
-        }
-        .sheet {
-          border: none;
-          padding: 0;
-        }
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>كل الشهادات - Pixology</title>
+    <link rel="stylesheet" href="certificates.css" />
   </head>
   <body>
-    <div class="wrap">
-      <div class="bar">
-        <div class="muted">شهادة تطوع رسمية (PDF)</div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap">
-          <button class="btn primary" id="printBtn">🖨️ طباعة / حفظ PDF</button>
-          <a class="btn" href="index.html">رجوع</a>
+    <div class="container">
+      <header class="top">
+        <div>
+          <h1>📜 كل الشهادات</h1>
+          <p class="sub">هنا هتلاقي كل الشهادات اللي اتعملت من لوحة الأدمن</p>
         </div>
-      </div>
 
-      <div class="sheet">
-        <div class="cert">
-          <div class="top">
-            <div class="logo">PX</div>
-            <div class="muted" id="orgText">Pixology Foundation</div>
-          </div>
-
-          <h1>شهادة مشاركة تطوعية</h1>
-          <div class="muted">
-            تم إصدار هذه الشهادة لتأكيد المشاركة التطوعية داخل المؤسسة.
-          </div>
-
-          <div class="alert" id="errBox"></div>
-
-          <div class="grid" style="margin-top: 14px">
-            <div class="row">
-              <div class="k">الاسم</div>
-              <div class="v" id="name">—</div>
-            </div>
-            <div class="row">
-              <div class="k">Volunteer ID</div>
-              <div class="v" id="vid">—</div>
-            </div>
-            <div class="row">
-              <div class="k">رقم الشهادة</div>
-              <div class="v" id="certId">—</div>
-            </div>
-            <div class="row">
-              <div class="k">إجمالي الساعات وقت الإصدار</div>
-              <div class="v" id="hours">—</div>
-            </div>
-            <div class="row">
-              <div class="k">الحالة وقت الإصدار</div>
-              <div class="v" id="status">—</div>
-            </div>
-            <div class="row">
-              <div class="k">تاريخ الإصدار</div>
-              <div class="v" id="issuedAt">—</div>
-            </div>
-          </div>
-
-          <div class="qr" id="qrSection" style="display: none">
-            <div class="muted">QR للتحقق من المتطوع</div>
-            <div id="qrcode"></div>
-            <div
-              class="muted"
-              id="verifyLink"
-              style="text-align: center; word-break: break-word"
-            ></div>
-          </div>
-
-          <div class="sign">
-            <div class="line">توقيع المسؤول</div>
-            <div class="line">ختم المؤسسة</div>
-          </div>
+        <div class="actions">
+          <a class="btn ghost" href="admin.html">⬅️ رجوع للأدمن</a>
+          <button class="btn" id="exportCsv">⬇️ Export CSV</button>
+          <button class="btn danger" id="logout">تسجيل خروج</button>
         </div>
-      </div>
+      </header>
+
+      <section class="card">
+        <div class="filters">
+          <input
+            id="search"
+            type="text"
+            placeholder="ابحث باسم المتطوع / ID الشهادة / Volunteer ID ..."
+          />
+          <select id="filterStatus">
+            <option value="">كل الحالات</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Certified">Certified</option>
+          </select>
+        </div>
+
+        <div class="meta">
+          <span id="count">0 شهادة</span>
+          <span id="roleBadge" class="badge">...</span>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>تاريخ الإصدار</th>
+                <th>Cert ID</th>
+                <th>اسم المتطوع</th>
+                <th>Volunteer ID</th>
+                <th>الساعات وقت الإصدار</th>
+                <th>الحالة وقت الإصدار</th>
+                <th>جهة الإصدار</th>
+                <th>أوامر</th>
+              </tr>
+            </thead>
+            <tbody id="rows">
+              <tr>
+                <td colspan="8" class="empty">جارٍ التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div id="toast" class="toast"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
-    <script type="module">
-      import { db } from "./firebase.js";
-      import {
-        doc,
-        getDoc,
-      } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-      const params = new URLSearchParams(location.search);
-      const cert = (params.get("cert") || "").trim();
-
-      const errBox = document.getElementById("errBox");
-      const qrSection = document.getElementById("qrSection");
-
-      function showError(msg) {
-        errBox.textContent = msg;
-        errBox.style.display = "block";
-      }
-
-      const baseDir = window.location.href.substring(
-        0,
-        window.location.href.lastIndexOf("/") + 1,
-      );
-
-      if (!cert) {
-        showError(
-          "❌ لا يوجد رقم شهادة. افتح: certificate.html?cert=CERT-000001",
-        );
-      } else {
-        const snap = await getDoc(doc(db, "certificates", cert));
-        if (!snap.exists()) {
-          showError("❌ الشهادة غير موجودة");
-          document.getElementById("certId").textContent = cert;
-        } else {
-          const c = snap.data();
-
-          document.getElementById("orgText").textContent =
-            c.organization || "Pixology Foundation";
-          document.getElementById("name").textContent = c.name || "—";
-          document.getElementById("vid").textContent = c.volunteerId || "—";
-          document.getElementById("certId").textContent = c.certId || cert;
-          document.getElementById("hours").textContent =
-            String(c.hoursAtIssue ?? 0) + " ساعة";
-          document.getElementById("status").textContent =
-            c.statusAtIssue || "Active";
-
-          const t = c.issuedAt?.toDate ? c.issuedAt.toDate() : null;
-          document.getElementById("issuedAt").textContent = t
-            ? t.toLocaleString("ar-EG")
-            : "—";
-
-          // QR يودّي لصفحة verify للمتطوع
-          const verifyUrl = `${baseDir}verify.html?id=${encodeURIComponent(c.volunteerId || "")}`;
-          document.getElementById("verifyLink").textContent = verifyUrl;
-
-          const qrBox = document.getElementById("qrcode");
-          qrBox.innerHTML = "";
-          new QRCode(qrBox, { text: verifyUrl, width: 170, height: 170 });
-
-          qrSection.style.display = "grid";
-        }
-      }
-
-      document
-        .getElementById("printBtn")
-        .addEventListener("click", () => window.print());
-    </script>
+    <script type="module" src="certificates.js"></script>
   </body>
 </html>

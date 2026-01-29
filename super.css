@@ -1,9 +1,9 @@
-/* ================== ADMIN STYLE (FULL + MOBILE FIXED) ================== */
+/* ================== SUPER ADMIN STYLE ================== */
 
 body {
   font-family: Tahoma, Arial;
   margin: 0;
-  background: #0b1620;
+  background: #120b0b; /* تمييز للسوبر */
   color: #eef6ff;
 }
 
@@ -65,7 +65,7 @@ button {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1100px;
+  min-width: 800px;
 }
 
 th,
@@ -88,7 +88,7 @@ th {
 }
 
 .hint {
-  opacity: 0.8;
+  opacity: 0.85;
   font-size: 13px;
   font-weight: 800;
   margin-bottom: 10px;
@@ -97,15 +97,6 @@ th {
 .muted {
   opacity: 0.85;
   font-weight: 800;
-}
-
-/* ===== PANEL ===== */
-.panel {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.7);
 }
 
 /* ===== FORM ROW ===== */
@@ -120,23 +111,33 @@ th {
 .formRow select {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   min-width: 180px;
 }
 
-/* ===== MINI CONTROLS ===== */
-.mini {
-  width: 120px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+/* ===== BUTTON SYSTEM (لأنك مستخدم btn classes) ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+  color: #eef6ff;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
 }
 
-.miniBtn {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  cursor: pointer;
+.btn--outline {
+  background: transparent;
+}
+
+.btn--solid {
+  background: linear-gradient(135deg, #f0c75e, #caa336);
+  color: #120b0b;
+  border-color: transparent;
 }
 
 /* ===== TOAST ===== */
@@ -155,21 +156,8 @@ th {
   z-index: 9999;
   font-weight: 800;
 }
-
 .toast.show {
   display: block;
-}
-
-.toast small {
-  display: block;
-  opacity: 0.85;
-  margin-top: 4px;
-  font-weight: 700;
-}
-
-/* ===== SUPER ADMIN ===== */
-.superOnly .tableWrap table {
-  min-width: 800px;
 }
 
 /* ================== MOBILE FIX ================== */
@@ -179,22 +167,10 @@ body {
   overflow-x: hidden;
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* ===== TABLET & MOBILE ===== */
 @media (max-width: 768px) {
   .wrap {
     width: calc(100% - 16px);
     margin: 12px auto;
-  }
-
-  .top {
-    padding: 12px;
-    align-items: stretch;
   }
 
   .top > * {
@@ -202,6 +178,7 @@ img {
   }
 
   .actions {
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
@@ -209,7 +186,8 @@ img {
 
   input,
   select,
-  button {
+  button,
+  .btn {
     width: 100%;
     min-height: 44px;
   }
@@ -224,34 +202,5 @@ img {
   .formRow select {
     min-width: 0;
     width: 100%;
-  }
-
-  .mini,
-  .miniBtn {
-    width: 100%;
-    min-height: 44px;
-  }
-
-  th,
-  td {
-    font-size: 14px;
-  }
-}
-
-/* ===== SMALL PHONES ===== */
-@media (max-width: 480px) {
-  .card {
-    padding: 12px;
-    border-radius: 16px;
-  }
-
-  th,
-  td {
-    padding: 8px;
-    font-size: 13px;
-  }
-
-  .hint {
-    font-size: 12px;
   }
 }

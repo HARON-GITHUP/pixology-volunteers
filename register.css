@@ -270,3 +270,30 @@ code {
   border-radius: 10px;
   border: 1px solid var(--border);
 }
+
+/* ===== MOBILE FIX ===== */
+@media (max-width: 600px) {
+  .top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters input,
+  .filters select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .btn,
+  .miniBtn {
+    width: 100%;
+  }
+}

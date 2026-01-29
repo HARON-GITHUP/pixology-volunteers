@@ -12,8 +12,6 @@ import {
   runTransaction,
   deleteDoc,
   setDoc,
-  where,
-  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 import {
@@ -50,17 +48,7 @@ const selectAll = document.getElementById("selectAll");
 const deleteSelectedBtn = document.getElementById("deleteSelected");
 const clearSelectionBtn = document.getElementById("clearSelection");
 
-// ===== Super Admin Manager DOM =====
-const adminManager = document.getElementById("adminManager");
-const aUid = document.getElementById("aUid");
-const aRole = document.getElementById("aRole");
-const aActive = document.getElementById("aActive");
-const aSave = document.getElementById("aSave");
-const aLoad = document.getElementById("aLoad");
-const aMsg = document.getElementById("aMsg");
-const aRows = document.getElementById("aRows");
-
-// ===== Manual Add (Step 2) DOM =====
+/** ===== Manual Add (Step 2) DOM ===== */
 const mName = document.getElementById("mName");
 const mPhone = document.getElementById("mPhone");
 const mGender = document.getElementById("mGender");
@@ -136,43 +124,6 @@ function fileToDataURL(file) {
     r.onerror = reject;
     r.readAsDataURL(file);
   });
-}
-
-function setAdminMsg(text = "") {
-  if (!aMsg) return;
-  aMsg.textContent = text;
-}
-
-function canManageAdmins() {
-  return CURRENT_ROLE === "super_admin";
-}
-
-function renderAdminUsers(list) {
-  if (!aRows) return;
-
-  if (!list.length) {
-    aRows.innerHTML = `
-      <tr><td colspan="4" style="text-align:center; padding:14px; opacity:.8;">
-        لا يوجد أدمنز
-      </td></tr>`;
-    return;
-  }
-
-  aRows.innerHTML = list
-    .map(
-      (u) => `
-    <tr>
-      <td>${u.uid}</td>
-      <td>${u.role}</td>
-      <td>${String(u.active)}</td>
-      <td style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="miniBtn" data-act="fill" data-uid="${u.uid}" data-role="${u.role}" data-active="${u.active}">تعديل</button>
-        <button class="miniBtn" data-act="toggle" data-uid="${u.uid}" data-active="${u.active}">${u.active ? "تعطيل" : "تفعيل"}</button>
-      </td>
-    </tr>
-  `,
-    )
-    .join("");
 }
 
 /** ✅ تحقق Role من users/{uid} (admin + super_admin) */
@@ -421,104 +372,7 @@ function renderRequests(reqDocs) {
     .join("");
 }
 
-/** ✅ جدول الأدمنز - تحميل */
-aLoad?.addEventListener("click", async () => {
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  setAdminMsg("جارٍ التحميل...");
-
-  try {
-    const q1 = query(collection(db, "users"), where("role", "==", "admin"));
-    const q2 = query(
-      collection(db, "users"),
-      where("role", "==", "super_admin"),
-    );
-
-    const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-
-    const list = [
-      ...s1.docs.map((d) => ({ uid: d.id, ...d.data() })),
-      ...s2.docs.map((d) => ({ uid: d.id, ...d.data() })),
-    ].map((x) => ({
-      uid: x.uid,
-      role: x.role || "admin",
-      active: x.active === true,
-    }));
-
-    const map = new Map();
-    list.forEach((x) => map.set(x.uid, x));
-    renderAdminUsers(Array.from(map.values()));
-
-    setAdminMsg(`✅ تم التحميل (${map.size})`);
-  } catch (e) {
-    console.error(e);
-    setAdminMsg("❌ فشل التحميل");
-  }
-});
-
-/** ✅ حفظ/تحديث أدمن */
-aSave?.addEventListener("click", async () => {
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  const uid = (aUid?.value || "").trim();
-  const role = (aRole?.value || "admin").trim();
-  const active = (aActive?.value || "true") === "true";
-
-  if (!uid) {
-    setAdminMsg("❌ اكتب UID");
-    return;
-  }
-
-  setAdminMsg("جارٍ الحفظ...");
-
-  try {
-    await setDoc(doc(db, "users", uid), { role, active }, { merge: true });
-    setAdminMsg("✅ تم الحفظ");
-    aLoad?.click();
-  } catch (e) {
-    console.error(e);
-    setAdminMsg("❌ فشل الحفظ (تأكد إنك سوبر أدمن وأن الـ Rules صح)");
-  }
-});
-
-/** ✅ أزرار داخل جدول الأدمنز */
-aRows?.addEventListener("click", async (e) => {
-  const btn = e.target?.closest?.("button[data-act]");
-  if (!btn) return;
-
-  if (!canManageAdmins()) return alert("❌ مسموح للسوبر أدمن فقط");
-
-  const act = btn.dataset.act;
-  const uid = btn.dataset.uid;
-  if (!uid) return;
-
-  if (act === "fill") {
-    if (aUid) aUid.value = uid;
-    if (aRole) aRole.value = btn.dataset.role || "admin";
-    if (aActive)
-      aActive.value = btn.dataset.active === "true" ? "true" : "false";
-    setAdminMsg("✅ تم تحميل بيانات المستخدم في الفورم");
-    return;
-  }
-
-  if (act === "toggle") {
-    const current = btn.dataset.active === "true";
-    const next = !current;
-
-    setAdminMsg("جارٍ التحديث...");
-
-    try {
-      await updateDoc(doc(db, "users", uid), { active: next });
-      setAdminMsg("✅ تم التحديث");
-      aLoad?.click();
-    } catch (e2) {
-      console.error(e2);
-      setAdminMsg("❌ فشل التحديث");
-    }
-  }
-});
-
-/** ✅ أزرار الجدول (save / issueCert / approve / reject) — Listener واحد فقط */
+/** ✅ أزرار الجدول (save / issueCert / approve / reject) */
 rowsEl?.addEventListener("click", async (e) => {
   const btn = e.target?.closest?.("button[data-action]");
   if (!btn) return;
@@ -537,7 +391,6 @@ rowsEl?.addEventListener("click", async (e) => {
 
     try {
       if (action === "approve") {
-        // هنا لو عندك منطق موافقة الطلب (نقل الطلب لمتطوعين) ضيفه حسب مشروعك
         await updateDoc(doc(db, REQ_COL, reqId), { status: "Approved" });
         showToast("✅ تم قبول الطلب");
       } else {
@@ -734,8 +587,6 @@ onAuthStateChanged(auth, async (user) => {
   CURRENT_ROLE = null;
 
   if (!user) {
-    if (adminManager) adminManager.style.display = "none";
-
     if (loginBox) loginBox.style.display = "block";
     if (dataBox) dataBox.style.display = "none";
     setControlsEnabled(false);
@@ -760,15 +611,17 @@ onAuthStateChanged(auth, async (user) => {
   ADMIN_OK = res.ok;
   CURRENT_ROLE = res.role;
 
-  if (adminManager) {
-    adminManager.style.display =
-      CURRENT_ROLE === "super_admin" ? "block" : "none";
-  }
+  // ✅ خزّن الدور عشان super.html يقدر يشيّك بسرعة (اختياري)
+  localStorage.setItem("role", CURRENT_ROLE || "");
 
   if (!res.ok) {
     if (loginMsg) loginMsg.textContent = "❌ الحساب ده مش أدمن";
     await signOut(auth);
     return;
+  }
+  const goSuper = document.getElementById("goSuper");
+  if (goSuper && CURRENT_ROLE === "super_admin") {
+    goSuper.style.display = "inline-block";
   }
 
   if (loginBox) loginBox.style.display = "none";
@@ -824,9 +677,6 @@ onAuthStateChanged(auth, async (user) => {
 
     renderVolunteersTable();
   });
-
-  // لو سوبر أدمن: حمّل القائمة تلقائيًا
-  if (CURRENT_ROLE === "super_admin") aLoad?.click();
 });
 
 setControlsEnabled(false);
