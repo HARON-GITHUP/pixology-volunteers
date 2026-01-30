@@ -16,13 +16,13 @@
           <img src="p.jpg" alt="Pixology" style="width: 180px; height: 80px" />
         </a>
 
-        <div class="topnav__actions">
+        <div class="topnav__actions" style="position: relative">
           <!-- ✅ زر تغيير اللغة -->
           <button class="link link--btn" id="langToggle" type="button">
             EN
           </button>
 
-          <!-- ✅ زر تسجيل/حساب (هو اللي هيعمل Google) -->
+          <!-- ✅ زر تسجيل/حساب -->
           <button id="btnLogin" class="link link--btn" type="button">
             تسجيل / إنشاء حساب
           </button>
@@ -37,6 +37,14 @@
             تسجيل خروج
           </button>
 
+          <!-- ✅ قائمة اختيار طريقة التسجيل (هتفتح بعد الصورة) -->
+          <div id="loginMenu" class="login-menu" style="display: none">
+            <button id="loginGoogle" class="login-btn" type="button">
+              التسجيل باستخدام Google
+            </button>
+            <!-- تقدر تزود هنا Providers تانية بعدين -->
+          </div>
+
           <a class="link" href="contact.html" data-i18n="navContact">راسلنا</a>
           <a class="link" href="about.html" data-i18n="navAbout">من نحن</a>
           <a class="link" href="admin.html" data-i18n="navAdmin">لوحة التحكم</a>
@@ -44,7 +52,7 @@
             >📜 كل الشهادات</a
           >
 
-          <!-- ✅ رجعناها زي الأول: لينك عادي يفتح register.html مباشرة -->
+          <!-- ✅ تقديم طلب تطوع زي الأول -->
           <a class="btn btn--solid" href="register.html" data-i18n="navApply">
             تقديم طلب تطوع
           </a>
@@ -159,6 +167,33 @@
         </div>
       </div>
     </footer>
+
+    <!-- ✅ Popup الصورة قبل التسجيل -->
+    <div id="loginCover" class="modal" aria-hidden="true">
+      <div class="modal__backdrop" id="loginCoverClose"></div>
+
+      <div class="modal__card" role="dialog" aria-modal="true">
+        <img class="modal__img" src="login-cover.jpg" alt="Pixology" />
+
+        <div class="modal__body">
+          <h3 class="modal__title">مرحبًا بك</h3>
+          <p class="modal__text">قبل ما تكمل، اختار طريقة تسجيل الحساب.</p>
+
+          <div class="modal__actions">
+            <button class="btn btn--outline" id="loginCoverSkip" type="button">
+              إغلاق
+            </button>
+            <button
+              class="btn btn--solid"
+              id="loginCoverContinue"
+              type="button"
+            >
+              متابعة
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ✅ لغة الموقع -->
     <script src="i18n.js"></script>

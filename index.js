@@ -29,7 +29,44 @@ const clearBtn = document.getElementById("clearFilters");
 const btnLogin = document.getElementById("btnLogin");
 const btnLogout = document.getElementById("btnLogout");
 
+// قائمة طرق التسجيل
+const loginMenu = document.getElementById("loginMenu");
+const loginGoogle = document.getElementById("loginGoogle");
+
+// Popup الصورة
+const loginCover = document.getElementById("loginCover");
+const loginCoverClose = document.getElementById("loginCoverClose");
+const loginCoverSkip = document.getElementById("loginCoverSkip");
+const loginCoverContinue = document.getElementById("loginCoverContinue");
+
 let cache = [];
+
+/** ================== Helpers ================== */
+function toggle(el, show) {
+  if (!el) return;
+  el.style.display = show ? "block" : "none";
+}
+
+function openCover() {
+  if (!loginCover) return;
+  loginCover.classList.add("is-open");
+  // اقفل القائمة لو مفتوحة
+  toggle(loginMenu, false);
+}
+
+function closeCover() {
+  loginCover?.classList.remove("is-open");
+}
+
+function toggleMenu() {
+  if (!loginMenu) return;
+  const isOpen = loginMenu.style.display === "block";
+  toggle(loginMenu, !isOpen);
+}
+
+function closeMenu() {
+  toggle(loginMenu, false);
+}
 
 /** ================== كارت المتطوع ================== */
 function cardHTML(v) {
@@ -46,7 +83,6 @@ function cardHTML(v) {
   const name = v.name || "متطوع";
   const hours = Number(v.hours ?? 0);
 
-  // ✅ id صحيح
   const id = v.volunteerId || v.id || "—";
   const gender = v.gender || "";
 
@@ -105,7 +141,7 @@ function render() {
   if (mode === "اكبر عدد ساعات") {
     list.sort((a, b) => Number(b.hours || 0) - Number(a.hours || 0));
   } else if (mode === "اقل عدد ساعات") {
-    list.sort((a, b) => Number(a.hours || 0) - Number(b.hours || 0));
+    list.sort((a, b) => Number(a.hours || 0) - Number(a.hours || 0));
   }
 
   grid.innerHTML = list.length
@@ -118,16 +154,13 @@ function render() {
 
 /** ================== Load ================== */
 async function load() {
-  // ✅ المتطوعين المعتمدين
   const snap = await getDocs(
     query(collection(db, "pixology_volunteers"), orderBy("createdAt", "desc")),
   );
 
-  // ✅ إدخال doc.id ضمن البيانات
   cache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   render();
 
-  // ✅ عدد الطلبات Pending
   try {
     const rs = await getDocs(
       query(
@@ -153,17 +186,65 @@ clearBtn?.addEventListener("click", () => {
   render();
 });
 
-/** ================== Auth: Google Login فقط على زر تسجيل ================== */
-btnLogin?.addEventListener("click", async () => {
-  try {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    alert("تم تسجيل الدخول بحساب حقيقي ✅");
-  } catch (e) {
-    alert("فشل تسجيل الدخول: " + (e?.message || ""));
+/** ================== Login UI ================== */
+/**
+ * المطلوب:
+ * - btnLogin يفتح Popup الصورة
+ * - Continue يفتح قائمة التسجيل
+ * - Google يسجل دخول
+ */
+
+// فتح Popup الصورة عند الضغط على تسجيل/انشاء حساب
+btnLogin?.addEventListener("click", () => {
+  openCover();
+});
+
+// إغلاق Popup (زر X بالخلفية)
+loginCoverClose?.addEventListener("click", closeCover);
+loginCoverSkip?.addEventListener("click", closeCover);
+
+// متابعة → اقفل الصورة وافتح القائمة
+loginCoverContinue?.addEventListener("click", () => {
+  closeCover();
+  toggleMenu();
+});
+
+// إغلاق popup بالـ ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeCover();
+    closeMenu();
   }
 });
 
+// لو ضغط برا القائمة اقفلها (اختياري)
+document.addEventListener("click", (e) => {
+  const target = e.target;
+  if (!target) return;
+
+  // لو الكليك خارج btnLogin وخارج القائمة نفسها
+  const clickedInsideMenu = loginMenu?.contains(target);
+  const clickedLoginBtn = btnLogin?.contains(target);
+
+  if (!clickedInsideMenu && !clickedLoginBtn) {
+    closeMenu();
+  }
+});
+
+/** ================== Auth: Google ================== */
+loginGoogle?.addEventListener("click", async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+
+    closeMenu();
+    alert("تم تسجيل الدخول بحساب Google ✅");
+  } catch (e) {
+    alert("فشل تسجيل الدخول");
+  }
+});
+
+// تسجيل خروج
 btnLogout?.addEventListener("click", async () => {
   try {
     await signOut(auth);
@@ -173,7 +254,7 @@ btnLogout?.addEventListener("click", async () => {
   }
 });
 
-// ✅ متابعة حالة الدخول (تغيير نص الزر + إظهار زر الخروج)
+// متابعة حالة الدخول (تغيير نص الزر + إظهار زر الخروج)
 onAuthStateChanged(auth, (user) => {
   if (user) {
     if (btnLogin) {
