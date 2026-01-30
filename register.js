@@ -1,3 +1,14 @@
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+// ✅ حماية الصفحة: ممنوع الدخول بدون تسجيل
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("لازم تسجل دخول بحساب حقيقي الأول ✅");
+    window.location.replace("index.html");
+  }
+});
+
 import {
   getStorage,
   ref,
@@ -201,4 +212,12 @@ form?.addEventListener("submit", async (e) => {
   } finally {
     setLoading(false);
   }
+});
+
+import { signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const btnLogout = document.getElementById("btnLogout");
+btnLogout?.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.replace("index.html");
 });

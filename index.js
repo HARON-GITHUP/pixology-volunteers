@@ -1,4 +1,5 @@
-import { db } from "./firebase.js";
+import { db, auth } from "./firebase.js";
+
 import {
   collection,
   query,
@@ -7,6 +8,14 @@ import {
   orderBy,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+/** ================== DOM ================== */
 const grid = document.getElementById("volGrid");
 const resultCount = document.getElementById("resultCount");
 const volCount = document.getElementById("volCount");
@@ -17,11 +26,13 @@ const genderEl = document.getElementById("filterGender");
 const gradeEl = document.getElementById("filterGrade");
 const clearBtn = document.getElementById("clearFilters");
 
+const btnLogin = document.getElementById("btnLogin");
+const btnLogout = document.getElementById("btnLogout");
+
 let cache = [];
 
-// ================== كارت المتطوع ==================
+/** ================== كارت المتطوع ================== */
 function cardHTML(v) {
-  // ✅ نفس منطق صفحة الملف الشخصي
   const img =
     v.photoData ||
     v.photoURL ||
@@ -30,10 +41,12 @@ function cardHTML(v) {
     v.image ||
     v.avatar ||
     v.photo ||
-    "p.jpg"; // لو مفيش صورة -> Pixology
+    "p.jpg";
 
   const name = v.name || "متطوع";
   const hours = Number(v.hours ?? 0);
+
+  // ✅ id صحيح
   const id = v.volunteerId || v.id || "—";
   const gender = v.gender || "";
 
@@ -67,7 +80,7 @@ function cardHTML(v) {
   `;
 }
 
-// ================== Render ==================
+/** ================== Render ================== */
 function render() {
   if (!grid) return;
 
@@ -81,7 +94,7 @@ function render() {
     list = list.filter(
       (v) =>
         (v.name || "").toLowerCase().includes(q) ||
-        (v.volunteerId || "").toLowerCase().includes(q),
+        (v.volunteerId || v.id || "").toString().toLowerCase().includes(q),
     );
   }
 
@@ -103,17 +116,18 @@ function render() {
   if (volCount) volCount.textContent = String(cache.length);
 }
 
-// ================== Load ==================
+/** ================== Load ================== */
 async function load() {
-  // المتطوعين المعتمدين
+  // ✅ المتطوعين المعتمدين
   const snap = await getDocs(
     query(collection(db, "pixology_volunteers"), orderBy("createdAt", "desc")),
   );
 
-  cache = snap.docs.map((d) => d.data());
+  // ✅ إدخال doc.id ضمن البيانات
+  cache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   render();
 
-  // عدد الطلبات Pending
+  // ✅ عدد الطلبات Pending
   try {
     const rs = await getDocs(
       query(
@@ -127,7 +141,7 @@ async function load() {
   }
 }
 
-// ================== Events ==================
+/** ================== Events ================== */
 searchEl?.addEventListener("input", render);
 genderEl?.addEventListener("change", render);
 gradeEl?.addEventListener("change", render);
@@ -139,5 +153,39 @@ clearBtn?.addEventListener("click", () => {
   render();
 });
 
-// ================== Init ==================
+/** ================== Auth: Google Login فقط على زر تسجيل ================== */
+btnLogin?.addEventListener("click", async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    alert("تم تسجيل الدخول بحساب حقيقي ✅");
+  } catch (e) {
+    alert("فشل تسجيل الدخول: " + (e?.message || ""));
+  }
+});
+
+btnLogout?.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    alert("تم تسجيل الخروج ✅");
+  } catch {
+    alert("فشل تسجيل الخروج");
+  }
+});
+
+// ✅ متابعة حالة الدخول (تغيير نص الزر + إظهار زر الخروج)
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    if (btnLogin) {
+      btnLogin.textContent =
+        "حسابي: " + (user.displayName || user.email || "User");
+    }
+    if (btnLogout) btnLogout.style.display = "inline-flex";
+  } else {
+    if (btnLogin) btnLogin.textContent = "تسجيل / إنشاء حساب";
+    if (btnLogout) btnLogout.style.display = "none";
+  }
+});
+
+/** ================== Init ================== */
 load();

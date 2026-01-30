@@ -17,7 +17,10 @@ const PRECACHE = [
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).catch(() => {})
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE))
+      .catch(() => {}),
   );
 });
 
@@ -26,15 +29,22 @@ self.addEventListener("activate", (event) => {
     (async () => {
       // remove old caches
       const keys = await caches.keys();
-      await Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : Promise.resolve())));
+      await Promise.all(
+        keys.map((k) =>
+          k !== CACHE_NAME ? caches.delete(k) : Promise.resolve(),
+        ),
+      );
       await self.clients.claim();
-    })()
+    })(),
   );
 });
 
 // Helper: decide request type
 function isHTML(req) {
-  return req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
+  return (
+    req.mode === "navigate" ||
+    (req.headers.get("accept") || "").includes("text/html")
+  );
 }
 function isStaticJSorCSS(url) {
   return url.pathname.endsWith(".js") || url.pathname.endsWith(".css");
@@ -65,10 +75,11 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(req);
           if (cached) return cached;
           // last resort: for navigation fall back to index
-          if (isHTML(req)) return (await caches.match("./index.html")) || Response.error();
+          if (isHTML(req))
+            return (await caches.match("./index.html")) || Response.error();
           return Response.error();
         }
-      })()
+      })(),
     );
     return;
   }
@@ -83,7 +94,7 @@ self.addEventListener("fetch", (event) => {
         const cache = await caches.open(CACHE_NAME);
         cache.put(req, res.clone()).catch(() => {});
         return res;
-      })()
+      })(),
     );
     return;
   }

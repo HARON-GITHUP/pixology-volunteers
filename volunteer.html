@@ -343,7 +343,9 @@
       const volunteerId = (getParam("id", "") || "").trim();
 
       if (!volunteerId) {
-        showError("❌ مفيش ID في الرابط. لازم تفتح: volunteer.html?id=VOL-000001");
+        showError(
+          "❌ مفيش ID في الرابط. لازم تفتح: volunteer.html?id=VOL-000001",
+        );
         document.getElementById("vName").textContent = "غير صالح";
         document.getElementById("statusBadge").textContent = "—";
         document.getElementById("hoursBadge").textContent = "0";
@@ -351,7 +353,7 @@
       } else {
         const qy = query(
           collection(db, "pixology_volunteers"),
-          where("volunteerId", "==", volunteerId)
+          where("volunteerId", "==", volunteerId),
         );
 
         const snap = await getDocs(qy);
@@ -372,7 +374,8 @@
 
           // fill header
           document.getElementById("vName").textContent = name;
-          document.getElementById("vId").textContent = d.volunteerId || volunteerId;
+          document.getElementById("vId").textContent =
+            d.volunteerId || volunteerId;
 
           document.getElementById("hoursNum").textContent = String(hours);
           document.getElementById("hoursBadge").textContent = String(hours);
@@ -405,9 +408,13 @@
 
           const base = Math.max(0, Math.floor(hours / 7));
           const rem = hours - base * 7;
-          const values = Array.from({ length: 7 }, (_, i) => base + (i < rem ? 1 : 0));
+          const values = Array.from(
+            { length: 7 },
+            (_, i) => base + (i < rem ? 1 : 0),
+          );
 
-          document.getElementById("distText").textContent = `${hours} ساعات (مقسّمة على 7 أيام)`;
+          document.getElementById("distText").textContent =
+            `${hours} ساعات (مقسّمة على 7 أيام)`;
           drawBars(document.getElementById("bars"), labels, values);
 
           window.addEventListener("resize", () => {
@@ -418,7 +425,7 @@
           // ✅ FIX: QR + Verify Link (Absolute URL)
           const baseDir = window.location.href.substring(
             0,
-            window.location.href.lastIndexOf("/") + 1
+            window.location.href.lastIndexOf("/") + 1,
           );
           const verifyUrl = `${baseDir}verify.html?id=${encodeURIComponent(volunteerId)}`;
 
@@ -433,7 +440,7 @@
         }
       }
     </script>
-  
+
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -441,6 +448,5 @@
         });
       }
     </script>
-
-</body>
+  </body>
 </html>

@@ -21,15 +21,33 @@
           <button class="link link--btn" id="langToggle" type="button">
             EN
           </button>
+
+          <!-- ✅ زر تسجيل/حساب (هو اللي هيعمل Google) -->
+          <button id="btnLogin" class="link link--btn" type="button">
+            تسجيل / إنشاء حساب
+          </button>
+
+          <!-- ✅ زر تسجيل خروج (مخفي افتراضيًا) -->
+          <button
+            id="btnLogout"
+            class="link link--btn"
+            type="button"
+            style="display: none"
+          >
+            تسجيل خروج
+          </button>
+
           <a class="link" href="contact.html" data-i18n="navContact">راسلنا</a>
           <a class="link" href="about.html" data-i18n="navAbout">من نحن</a>
           <a class="link" href="admin.html" data-i18n="navAdmin">لوحة التحكم</a>
           <a class="link" href="certificates.html" data-i18n="navCerts"
             >📜 كل الشهادات</a
           >
-          <a class="btn btn--solid" href="register.html" data-i18n="navApply"
-            >تقديم طلب تطوع</a
-          >
+
+          <!-- ✅ رجعناها زي الأول: لينك عادي يفتح register.html مباشرة -->
+          <a class="btn btn--solid" href="register.html" data-i18n="navApply">
+            تقديم طلب تطوع
+          </a>
         </div>
       </div>
     </header>
@@ -104,7 +122,6 @@
         </button>
       </div>
 
-      <!-- ✅ wrap علشان نترجم كلمة "متطوع" بدون كسر الرقم -->
       <div class="tools__meta" id="resultWrap">
         <span id="resultCount">0</span>
         <span data-i18n="volunteersWord">متطوع</span>
@@ -124,7 +141,6 @@
     <footer class="footer">
       <div class="container footer__wrap">
         <div class="footer__center">
-          <!-- ✅ ثابت بدل ${img} -->
           <img
             src="p.jpg"
             alt="Pixology"
@@ -144,11 +160,10 @@
       </div>
     </footer>
 
-    <!-- JS -->
-    <script src="app.js"></script>
-    <script type="module" src="index.js"></script>
-
     <!-- ✅ لغة الموقع -->
     <script src="i18n.js"></script>
+
+    <!-- ✅ JS الصفحة (Firebase لازم Module) -->
+    <script type="module" src="index.js"></script>
   </body>
 </html>
