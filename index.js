@@ -6,6 +6,9 @@ import {
   where,
   getDocs,
   orderBy,
+  doc,
+  setDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 import {
@@ -16,6 +19,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 /** ================== DOM ================== */
+const myProfileLink = document.getElementById("myProfileLink");
+
 const grid = document.getElementById("volGrid");
 const resultCount = document.getElementById("resultCount");
 const volCount = document.getElementById("volCount");
@@ -33,11 +38,8 @@ const btnLogout = document.getElementById("btnLogout");
 const loginMenu = document.getElementById("loginMenu");
 const loginGoogle = document.getElementById("loginGoogle");
 
-// Popup الصورة
-const loginCover = document.getElementById("loginCover");
-const loginCoverClose = document.getElementById("loginCoverClose");
-const loginCoverSkip = document.getElementById("loginCoverSkip");
-const loginCoverContinue = document.getElementById("loginCoverContinue");
+// شاشة البداية
+const startGate = document.getElementById("startGate");
 
 let cache = [];
 
@@ -45,17 +47,6 @@ let cache = [];
 function toggle(el, show) {
   if (!el) return;
   el.style.display = show ? "block" : "none";
-}
-
-function openCover() {
-  if (!loginCover) return;
-  loginCover.classList.add("is-open");
-  // اقفل القائمة لو مفتوحة
-  toggle(loginMenu, false);
-}
-
-function closeCover() {
-  loginCover?.classList.remove("is-open");
 }
 
 function toggleMenu() {
@@ -141,7 +132,7 @@ function render() {
   if (mode === "اكبر عدد ساعات") {
     list.sort((a, b) => Number(b.hours || 0) - Number(a.hours || 0));
   } else if (mode === "اقل عدد ساعات") {
-    list.sort((a, b) => Number(a.hours || 0) - Number(a.hours || 0));
+    list.sort((a, b) => Number(a.hours || 0) - Number(b.hours || 0));
   }
 
   grid.innerHTML = list.length
@@ -186,65 +177,33 @@ clearBtn?.addEventListener("click", () => {
   render();
 });
 
-/** ================== Login UI ================== */
-/**
- * المطلوب:
- * - btnLogin يفتح Popup الصورة
- * - Continue يفتح قائمة التسجيل
- * - Google يسجل دخول
- */
-
-// فتح Popup الصورة عند الضغط على تسجيل/انشاء حساب
-btnLogin?.addEventListener("click", () => {
-  openCover();
-});
-
-// إغلاق Popup (زر X بالخلفية)
-loginCoverClose?.addEventListener("click", closeCover);
-loginCoverSkip?.addEventListener("click", closeCover);
-
-// متابعة → اقفل الصورة وافتح القائمة
-loginCoverContinue?.addEventListener("click", () => {
-  closeCover();
+/** ================== Login Menu ================== */
+btnLogin?.addEventListener("click", (e) => {
+  e.stopPropagation();
   toggleMenu();
 });
 
-// إغلاق popup بالـ ESC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    closeCover();
-    closeMenu();
-  }
-});
-
-// لو ضغط برا القائمة اقفلها (اختياري)
 document.addEventListener("click", (e) => {
   const target = e.target;
   if (!target) return;
 
-  // لو الكليك خارج btnLogin وخارج القائمة نفسها
   const clickedInsideMenu = loginMenu?.contains(target);
   const clickedLoginBtn = btnLogin?.contains(target);
 
-  if (!clickedInsideMenu && !clickedLoginBtn) {
-    closeMenu();
-  }
+  if (!clickedInsideMenu && !clickedLoginBtn) closeMenu();
 });
 
-/** ================== Auth: Google ================== */
 loginGoogle?.addEventListener("click", async () => {
   try {
     const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
-
     closeMenu();
     alert("تم تسجيل الدخول بحساب Google ✅");
-  } catch (e) {
+  } catch {
     alert("فشل تسجيل الدخول");
   }
 });
 
-// تسجيل خروج
 btnLogout?.addEventListener("click", async () => {
   try {
     await signOut(auth);
@@ -254,17 +213,71 @@ btnLogout?.addEventListener("click", async () => {
   }
 });
 
-// متابعة حالة الدخول (تغيير نص الزر + إظهار زر الخروج)
+myProfileLink?.addEventListener("click", (e) => {
+  if (!auth.currentUser) {
+    e.preventDefault();
+    alert("لازم تسجل / تنشئ حساب الأول ✅");
+    toggle(loginMenu, true);
+  }
+});
+
+/** ================== Auth State ================== */
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    if (btnLogin) {
-      btnLogin.textContent =
-        "حسابي: " + (user.displayName || user.email || "User");
-    }
-    if (btnLogout) btnLogout.style.display = "inline-flex";
+    btnLogin &&
+      (btnLogin.textContent =
+        "حسابي: " + (user.displayName || user.email || "User"));
+    btnLogout && (btnLogout.style.display = "inline-flex");
+    myProfileLink && (myProfileLink.style.display = "inline-flex");
   } else {
-    if (btnLogin) btnLogin.textContent = "تسجيل / إنشاء حساب";
-    if (btnLogout) btnLogout.style.display = "none";
+    btnLogin && (btnLogin.textContent = "تسجيل / إنشاء حساب");
+    btnLogout && (btnLogout.style.display = "none");
+    myProfileLink && (myProfileLink.style.display = "none");
+  }
+});
+
+/** ================== Start Gate: تسجيل متطوع/مؤسسة بجوجل ================== */
+startGate?.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-type]");
+  if (!btn) return;
+
+  const type = btn.dataset.type; // volunteer | org
+
+  try {
+    // ✅ لو مسجل بالفعل، استخدم نفس الحساب
+    let user = auth.currentUser;
+
+    // ✅ لو مش مسجل، افتح جوجل
+    if (!user) {
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+      user = cred.user;
+    }
+
+    // ✅ حفظ النوع في Firestore users/{uid}
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        uid: user.uid,
+        role: type, // volunteer | org
+        active: true, // ✅ مهم للقواعد
+        displayName: user.displayName || "",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    // ✅ اقفل شاشة البداية + اقفل قائمة التسجيل لو مفتوحة
+    startGate.style.display = "none";
+    closeMenu();
+
+    alert(type === "org" ? "تم التسجيل كمؤسسة ✅" : "تم التسجيل كمتطوع ✅");
+  } catch (err) {
+    alert("لم يتم تسجيل الدخول");
+    console.log(err);
   }
 });
 

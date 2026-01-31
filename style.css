@@ -887,3 +887,72 @@ html[dir="ltr"] .tools__meta {
   justify-content: flex-start;
   flex-wrap: wrap;
 }
+
+/* ===== Start Gate ===== */
+.gate {
+  position: fixed;
+  inset: 0;
+  background: #f6f8fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.gate__card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 900px;
+  width: calc(100% - 24px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+  text-align: center;
+}
+
+.gate__logo {
+  width: 140px;
+  margin-bottom: 10px;
+}
+
+.gate__title {
+  margin: 10px 0 4px;
+  font-size: 26px;
+}
+
+.gate__subtitle {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.gate__options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 700px) {
+  .gate__options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gate__option {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.gate__icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.gate__option h3 {
+  margin: 6px 0;
+}
+
+.gate__option p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 14px;
+}

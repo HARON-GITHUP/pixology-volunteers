@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ملفي الشخصي</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta name="theme-color" content="#0b1620" />
+  </head>
+
+  <body>
+    <!-- TOP NAV -->
+    <header class="topnav">
+      <div class="container topnav__wrap">
+        <a class="brand" href="index.html">
+          <img src="p.jpg" alt="Pixology" style="width: 180px; height: 80px" />
+        </a>
+
+        <div class="topnav__actions">
+          <a class="link" href="index.html">الرئيسية</a>
+          <a class="link" href="register.html">تقديم طلب تطوع</a>
+
+          <button
+            id="btnLogout"
+            class="link link--btn"
+            type="button"
+            style="display: none"
+          >
+            تسجيل خروج
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 24px 0 70px">
+      <div class="v-card" style="padding: 18px">
+        <h2 style="margin: 0 0 14px">ملفي الشخصي</h2>
+
+        <div
+          style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap"
+        >
+          <img
+            id="pPhoto"
+            src="p.jpg"
+            alt="صورة الحساب"
+            style="
+              width: 92px;
+              height: 92px;
+              border-radius: 18px;
+              object-fit: cover;
+            "
+            onerror="this.src = 'p.jpg'"
+          />
+
+          <div>
+            <div id="pName" style="font-weight: 800; font-size: 18px">—</div>
+            <div id="pEmail" style="opacity: 0.85; margin-top: 4px">—</div>
+          </div>
+        </div>
+
+        <hr style="margin: 16px 0; opacity: 0.2" />
+
+        <p><b>UID:</b> <span id="pUid">—</span></p>
+        <p><b>آخر تسجيل دخول:</b> <span id="pLast">—</span></p>
+
+        <div
+          style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap"
+        >
+          <a class="btn btn--outline" href="index.html">رجوع للرئيسية</a>
+          <a class="btn btn--solid" href="register.html">تقديم طلب تطوع</a>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="my-profile.js"></script>
+  </body>
+</html>

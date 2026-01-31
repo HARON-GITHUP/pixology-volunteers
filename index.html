@@ -9,6 +9,42 @@
   </head>
 
   <body>
+    <!-- ===== START GATE SCREEN ===== -->
+<div id="startGate" class="gate">
+  <div class="gate__card">
+    <img src="p.jpg" alt="Pixology" class="gate__logo" />
+
+    <h1 class="gate__title">مرحبًا بك في Pixology</h1>
+    <p class="gate__subtitle">اختر نوع الحساب للمتابعة</p>
+
+    <div class="gate__options">
+      <!-- شخصي -->
+      <div class="gate__option">
+        <div class="gate__icon">👤</div>
+        <h3>شخصي</h3>
+        <p>متطوع – تطوير مهارات – مشاركة مجتمعية</p>
+        <button class="btn btn--solid" data-type="personal">
+          متابعة كـ متطوع
+        </button>
+        <button class="btn btn--solid" data-type="volunteer">تسجيل كـ متطوع</button>
+<button class="btn btn--outline" data-type="org">تسجيل كـ مؤسسة</button>
+
+      </div>
+
+      <!-- مؤسسة -->
+      <div class="gate__option">
+        <div class="gate__icon">🏢</div>
+        <h3>مؤسسة</h3>
+        <p>مؤسسة – شريك – مبادرة مجتمعية</p>
+        <button class="btn btn--outline" data-type="org">
+          متابعة كمؤسسة
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ===== END GATE SCREEN ===== -->
+
     <!-- TOP NAV -->
     <header class="topnav">
       <div class="container topnav__wrap">
@@ -26,6 +62,14 @@
           <button id="btnLogin" class="link link--btn" type="button">
             تسجيل / إنشاء حساب
           </button>
+          <a class="link" href="my-profile.html" id="myProfileLink">ملفي الشخصي</a>
+
+          <div id="loginMenu" class="login-menu" style="display: none">
+  <button id="loginGoogle" class="login-btn" type="button">
+    التسجيل باستخدام Google
+  </button>
+</div>
+
 
           <!-- ✅ زر تسجيل خروج (مخفي افتراضيًا) -->
           <button
@@ -36,6 +80,10 @@
           >
             تسجيل خروج
           </button>
+          <a class="link" href="my-profile.html" id="myProfileLink" style="display:none;">
+  ملفي الشخصي
+</a>
+
 
           <!-- ✅ قائمة اختيار طريقة التسجيل (هتفتح بعد الصورة) -->
           <div id="loginMenu" class="login-menu" style="display: none">
@@ -167,30 +215,6 @@
         </div>
       </div>
     </footer>
-
-    <!-- ✅ Popup الصورة قبل التسجيل -->
-    <div id="loginCover" class="modal" aria-hidden="true">
-      <div class="modal__backdrop" id="loginCoverClose"></div>
-
-      <div class="modal__card" role="dialog" aria-modal="true">
-        <img class="modal__img" src="login-cover.jpg" alt="Pixology" />
-
-        <div class="modal__body">
-          <h3 class="modal__title">مرحبًا بك</h3>
-          <p class="modal__text">قبل ما تكمل، اختار طريقة تسجيل الحساب.</p>
-
-          <div class="modal__actions">
-            <button class="btn btn--outline" id="loginCoverSkip" type="button">
-              إغلاق
-            </button>
-            <button
-              class="btn btn--solid"
-              id="loginCoverContinue"
-              type="button"
-            >
-              متابعة
-            </button>
-          </div>
         </div>
       </div>
     </div>
